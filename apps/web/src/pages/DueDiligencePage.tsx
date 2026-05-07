@@ -29,10 +29,10 @@ function formatDate(d: Date | string | null) {
 
 export default function DueDiligencePage() {
   // === auto fetch-on-mount (backend planner) ===
-  const fetchOffmarketproperties = usePropertyStore((s) => s.fetchOffmarketproperties);
+  const fetchDuediligencerecords = useDDStore((s) => s.fetchDuediligencerecords);
   useEffect(() => {
-    fetchOffmarketproperties();
-  }, [fetchOffmarketproperties]);
+    fetchDuediligencerecords();
+  }, [fetchDuediligencerecords]);
   // === end auto fetch-on-mount ===
 
   const fetchOffmarketproperties = usePropertyStore((s) => s.fetchOffmarketproperties);

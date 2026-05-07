@@ -30,6 +30,10 @@ router.post('/', async (req, res) => {
     res.status(400).json({ error: 'name is required' });
     return;
   }
+  if (!body.email) {
+    res.status(400).json({ error: 'email is required' });
+    return;
+  }
   const now = new Date().toISOString();
   const doc: Record<string, unknown> = {
     ...body,
@@ -59,8 +63,13 @@ router.put('/:id', async (req, res) => {
     notes?: string;
   };
   const now = new Date().toISOString();
-  const updated_flag = await db.collection('agents').updateOne(req.params.id, { ...body, updatedAt: now });
-  if (!updated_flag) {
+  const updateData: Record<string, unknown> = {
+    ...body,
+    updatedAt: now,
+  };
+  delete (updateData as { id?: unknown }).id;
+  const found = await db.collection('agents').updateOne(req.params.id, updateData);
+  if (!found) {
     res.status(404).json({ error: 'Not found' });
     return;
   }

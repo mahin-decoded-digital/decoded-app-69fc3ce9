@@ -37,23 +37,23 @@ app.get('/api/health', (_req, res) => {
 
 // === auto-mounted routers (backend planner) ===
 import agentsRouter from './routes/agents.js'
-import requirementblastsRouter from './routes/requirementblasts.js'
-import compliancechecklistsRouter from './routes/compliancechecklists.js'
-import duediligencerecordsRouter from './routes/duediligencerecords.js'
 import dealsRouter from './routes/deals.js'
-import emailtemplatesRouter from './routes/emailtemplates.js'
-import meetingnotesRouter from './routes/meetingnotes.js'
 import offmarketpropertiesRouter from './routes/offmarketproperties.js'
 import dealpropertiesRouter from './routes/dealproperties.js'
+import duediligencerecordsRouter from './routes/duediligencerecords.js'
+import meetingnotesRouter from './routes/meetingnotes.js'
+import compliancechecklistsRouter from './routes/compliancechecklists.js'
+import emailtemplatesRouter from './routes/emailtemplates.js'
+import requirementblastsRouter from './routes/requirementblasts.js'
 app.use('/api/agents', agentsRouter)
-app.use('/api/requirementblasts', requirementblastsRouter)
-app.use('/api/compliancechecklists', compliancechecklistsRouter)
-app.use('/api/duediligencerecords', duediligencerecordsRouter)
 app.use('/api/deals', dealsRouter)
-app.use('/api/emailtemplates', emailtemplatesRouter)
-app.use('/api/meetingnotes', meetingnotesRouter)
 app.use('/api/offmarketproperties', offmarketpropertiesRouter)
 app.use('/api/dealproperties', dealpropertiesRouter)
+app.use('/api/duediligencerecords', duediligencerecordsRouter)
+app.use('/api/meetingnotes', meetingnotesRouter)
+app.use('/api/compliancechecklists', compliancechecklistsRouter)
+app.use('/api/emailtemplates', emailtemplatesRouter)
+app.use('/api/requirementblasts', requirementblastsRouter)
 // === end auto-mounted routers ===
 
 

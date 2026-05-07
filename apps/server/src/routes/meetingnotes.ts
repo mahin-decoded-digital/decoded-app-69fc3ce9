@@ -59,13 +59,13 @@ router.put('/:id', async (req, res) => {
   };
 
   const now = new Date().toISOString();
-  const updated_fields: Record<string, unknown> = {
+  const updateData: Record<string, unknown> = {
     ...body,
     updatedAt: now,
   };
-  delete (updated_fields as { id?: unknown }).id;
+  delete (updateData as { id?: unknown }).id;
 
-  const found = await db.collection('meetingnotes').updateOne(req.params.id, updated_fields);
+  const found = await db.collection('meetingnotes').updateOne(req.params.id, updateData);
   if (!found) {
     res.status(404).json({ error: 'Not found' });
     return;

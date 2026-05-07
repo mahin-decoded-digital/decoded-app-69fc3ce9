@@ -53,19 +53,14 @@ router.put('/:id', async (req, res) => {
     ddRecordId?: string | null;
   };
 
-  const now = new Date().toISOString();
-  const updateData: Record<string, unknown> = {
-    ...body,
-    updatedAt: now,
-  };
-  delete (updateData as { id?: unknown }).id;
-
-  const found = await db.collection('dealproperties').updateOne(req.params.id, updateData);
+  const updatedAt = new Date().toISOString();
+  const found = await db.collection('dealproperties').findById(req.params.id);
   if (!found) {
     res.status(404).json({ error: 'Not found' });
     return;
   }
 
+  await db.collection('dealproperties').updateOne(req.params.id, { ...body, updatedAt });
   const updated = await db.collection('dealproperties').findById(req.params.id);
   if (!updated) {
     res.status(404).json({ error: 'Not found' });

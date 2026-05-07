@@ -43,10 +43,10 @@ function formatDate(d: Date | string | null) {
 
 export default function DealDetailPage() {
   // === auto fetch-on-mount (backend planner) ===
-  const fetchOffmarketproperties = usePropertyStore((s) => s.fetchOffmarketproperties);
+  const fetchEmailtemplates = useEmailStore((s) => s.fetchEmailtemplates);
   useEffect(() => {
-    fetchOffmarketproperties();
-  }, [fetchOffmarketproperties]);
+    fetchEmailtemplates();
+  }, [fetchEmailtemplates]);
   // === end auto fetch-on-mount ===
 
   const { id } = useParams<{ id: string }>();

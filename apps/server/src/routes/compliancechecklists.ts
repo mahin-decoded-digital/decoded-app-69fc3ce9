@@ -48,12 +48,17 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   const body = req.body as CompliancechecklistBody;
   const now = new Date().toISOString();
-  const updated_check = await db.collection('compliancechecklists').findById(req.params.id);
-  if (!updated_check) {
+  const updateData: Record<string, unknown> = {
+    ...body,
+    updatedAt: now,
+  };
+  delete (updateData as { id?: unknown }).id;
+  const found = await db.collection('compliancechecklists').findById(req.params.id);
+  if (!found) {
     res.status(404).json({ error: 'Not found' });
     return;
   }
-  await db.collection('compliancechecklists').updateOne(req.params.id, { ...body, updatedAt: now });
+  await db.collection('compliancechecklists').updateOne(req.params.id, updateData);
   const updated = await db.collection('compliancechecklists').findById(req.params.id);
   if (!updated) {
     res.status(404).json({ error: 'Not found' });

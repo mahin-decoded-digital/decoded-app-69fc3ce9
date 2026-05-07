@@ -7,8 +7,6 @@ function project<T extends WithMongoId>(doc: T): Omit<T, '_id'> & { id: string }
   return { id: _id, ...rest } as Omit<T, '_id'> & { id: string };
 }
 
-const router = Router();
-
 interface RequirementblastBody {
   dealId?: string;
   geoSegment?: 'East' | 'West' | 'North' | 'Central' | 'All';
@@ -20,6 +18,8 @@ interface RequirementblastBody {
   status?: 'draft' | 'sent';
   recipientCount?: number;
 }
+
+const router = Router();
 
 router.post('/', async (req, res) => {
   const body = req.body as RequirementblastBody;
