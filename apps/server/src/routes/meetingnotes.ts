@@ -7,29 +7,31 @@ function project<T extends WithMongoId>(doc: T): Omit<T, '_id'> & { id: string }
   return { id: _id, ...rest } as Omit<T, '_id'> & { id: string };
 }
 
+interface Meetingnote {
+  dealId: string;
+  title: string;
+  rawTranscript?: string;
+  aiSummary?: string;
+  actionItems?: { task: string; assignee: string; dueDate: string; completed: boolean }[];
+  consentConfirmed?: boolean;
+  visibility?: 'internal' | 'client-visible';
+}
+
 const router = Router();
 
+// LIST
 router.get('/', async (req, res) => {
   const items = await db.collection('meetingnotes').find();
   res.json(items.map(project));
 });
 
+// CREATE
 router.post('/', async (req, res) => {
-  const body = req.body as {
-    dealId?: string;
-    title?: string;
-    rawTranscript?: string;
-    aiSummary?: string;
-    actionItems?: { task: string; assignee: string; dueDate: string; completed: boolean }[];
-    consentConfirmed?: boolean;
-    visibility?: 'internal' | 'client-visible';
-  };
-
+  const body = req.body as Partial<Meetingnote>;
   if (!body || !body.dealId || !body.title) {
     res.status(400).json({ error: 'dealId and title are required' });
     return;
   }
-
   const now = new Date().toISOString();
   const doc: Record<string, unknown> = {
     ...body,
@@ -37,7 +39,6 @@ router.post('/', async (req, res) => {
     updatedAt: now,
   };
   delete (doc as { id?: unknown }).id;
-
   const id = await db.collection('meetingnotes').insertOne(doc);
   const created = await db.collection('meetingnotes').findById(id);
   if (!created) {
@@ -47,30 +48,21 @@ router.post('/', async (req, res) => {
   res.status(201).json(project(created));
 });
 
+// UPDATE
 router.put('/:id', async (req, res) => {
-  const body = req.body as {
-    dealId?: string;
-    title?: string;
-    rawTranscript?: string;
-    aiSummary?: string;
-    actionItems?: { task: string; assignee: string; dueDate: string; completed: boolean }[];
-    consentConfirmed?: boolean;
-    visibility?: 'internal' | 'client-visible';
-  };
-
+  const body = req.body as Partial<Meetingnote>;
   const now = new Date().toISOString();
-  const updateData: Record<string, unknown> = {
+  const updated_fields: Record<string, unknown> = {
     ...body,
     updatedAt: now,
   };
-  delete (updateData as { id?: unknown }).id;
-
-  const found = await db.collection('meetingnotes').updateOne(req.params.id, updateData);
+  delete (updated_fields as { id?: unknown }).id;
+  const found = await db.collection('meetingnotes').findById(req.params.id);
   if (!found) {
     res.status(404).json({ error: 'Not found' });
     return;
   }
-
+  await db.collection('meetingnotes').updateOne(req.params.id, updated_fields);
   const updated = await db.collection('meetingnotes').findById(req.params.id);
   if (!updated) {
     res.status(404).json({ error: 'Not found' });
@@ -79,12 +71,14 @@ router.put('/:id', async (req, res) => {
   res.json(project(updated));
 });
 
+// DELETE
 router.delete('/:id', async (req, res) => {
-  const found = await db.collection('meetingnotes').deleteOne(req.params.id);
+  const found = await db.collection('meetingnotes').findById(req.params.id);
   if (!found) {
     res.status(404).json({ error: 'Not found' });
     return;
   }
+  await db.collection('meetingnotes').deleteOne(req.params.id);
   res.json({ success: true });
 });
 

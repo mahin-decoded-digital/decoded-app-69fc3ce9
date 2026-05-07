@@ -19,10 +19,19 @@ interface DealpropertyBody {
   ddRecordId?: string | null;
 }
 
+router.get('/', async (req, res) => {
+  const items = await db.collection('dealproperties').find();
+  res.json(items.map(project));
+});
+
 router.post('/', async (req, res) => {
   const body = req.body as DealpropertyBody;
-  if (!body || !body.dealId || !body.propertyId) {
-    res.status(400).json({ error: 'dealId and propertyId are required' });
+  if (!body || !body.dealId) {
+    res.status(400).json({ error: 'dealId is required' });
+    return;
+  }
+  if (!body.propertyId) {
+    res.status(400).json({ error: 'propertyId is required' });
     return;
   }
   const now = new Date().toISOString();
@@ -44,17 +53,12 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   const body = req.body as DealpropertyBody;
   const updatedAt = new Date().toISOString();
-  const updated_fields: Record<string, unknown> = {
-    ...body,
-    updatedAt,
-  };
-  delete (updated_fields as { id?: unknown }).id;
   const found = await db.collection('dealproperties').findById(req.params.id);
   if (!found) {
     res.status(404).json({ error: 'Not found' });
     return;
   }
-  await db.collection('dealproperties').updateOne(req.params.id, updated_fields);
+  await db.collection('dealproperties').updateOne(req.params.id, { ...body, updatedAt });
   const updated = await db.collection('dealproperties').findById(req.params.id);
   if (!updated) {
     res.status(404).json({ error: 'Not found' });

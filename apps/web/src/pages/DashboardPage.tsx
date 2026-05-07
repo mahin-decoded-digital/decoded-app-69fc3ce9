@@ -13,13 +13,6 @@ import { useDDStore } from '@/stores/useDDStore';
 import { NewDealDialog } from '@/components/NewDealDialog';
 
 export default function DashboardPage() {
-  // === auto fetch-on-mount (backend planner) ===
-  const fetchOffmarketproperties = usePropertyStore((s) => s.fetchOffmarketproperties);
-  useEffect(() => {
-    fetchOffmarketproperties();
-  }, [fetchOffmarketproperties]);
-  // === end auto fetch-on-mount ===
-
   const fetchOffmarketproperties = usePropertyStore((s) => s.fetchOffmarketproperties);
   useEffect(() => {
     fetchOffmarketproperties();

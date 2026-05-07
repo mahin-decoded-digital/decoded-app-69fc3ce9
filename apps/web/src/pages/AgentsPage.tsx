@@ -28,13 +28,6 @@ function formatDate(d: Date | string | null) {
 }
 
 export default function AgentsPage() {
-  // === auto fetch-on-mount (backend planner) ===
-  const fetchDeals = useDealStore((s) => s.fetchDeals);
-  useEffect(() => {
-    fetchDeals();
-  }, [fetchDeals]);
-  // === end auto fetch-on-mount ===
-
   const fetchDeals = useDealStore((s) => s.fetchDeals);
   useEffect(() => { fetchDeals(); }, [fetchDeals]);
 

@@ -21,6 +21,11 @@ interface Requirementblast {
 
 const router = Router();
 
+router.get('/', async (req, res) => {
+  const items = await db.collection('requirementblasts').find();
+  res.json(items.map(project));
+});
+
 router.post('/', async (req, res) => {
   const body = req.body as Partial<Requirementblast>;
   if (!body || !body.dealId) {

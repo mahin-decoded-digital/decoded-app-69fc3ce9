@@ -43,13 +43,6 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
 };
 
 export default function EmailTemplatesPage() {
-  // === auto fetch-on-mount (backend planner) ===
-  const fetchEmailtemplates = useEmailStore((s) => s.fetchEmailtemplates);
-  useEffect(() => {
-    fetchEmailtemplates();
-  }, [fetchEmailtemplates]);
-  // === end auto fetch-on-mount ===
-
   const fetchEmailtemplates = useEmailStore((s) => s.fetchEmailtemplates);
   useEffect(() => { fetchEmailtemplates(); }, [fetchEmailtemplates]);
 

@@ -34,13 +34,6 @@ function formatBudget(n: number) {
 }
 
 export default function PropertiesPage() {
-  // === auto fetch-on-mount (backend planner) ===
-  const fetchOffmarketproperties = usePropertyStore((s) => s.fetchOffmarketproperties);
-  useEffect(() => {
-    fetchOffmarketproperties();
-  }, [fetchOffmarketproperties]);
-  // === end auto fetch-on-mount ===
-
   const fetchOffmarketproperties = usePropertyStore((s) => s.fetchOffmarketproperties);
   useEffect(() => { fetchOffmarketproperties(); }, [fetchOffmarketproperties]);
 

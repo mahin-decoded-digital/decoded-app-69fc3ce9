@@ -7,8 +7,10 @@ function project<T extends WithMongoId>(doc: T): Omit<T, '_id'> & { id: string }
   return { id: _id, ...rest } as Omit<T, '_id'> & { id: string };
 }
 
-interface DuediligencerecordShape {
-  dealPropertyId: string;
+const router = Router();
+
+interface DuediligencerecordBody {
+  dealPropertyId?: string;
   floodMapUrl?: string;
   naturalHazardsUrl?: string;
   floodMapScreenshot?: string;
@@ -19,15 +21,15 @@ interface DuediligencerecordShape {
   reportGeneratedAt?: Date | null;
 }
 
-const router = Router();
-
+// LIST
 router.get('/', async (req, res) => {
   const items = await db.collection('duediligencerecords').find();
   res.json(items.map(project));
 });
 
+// CREATE
 router.post('/', async (req, res) => {
-  const body = req.body as Partial<DuediligencerecordShape>;
+  const body = req.body as DuediligencerecordBody;
   if (!body || !body.dealPropertyId) {
     res.status(400).json({ error: 'dealPropertyId is required' });
     return;
@@ -48,20 +50,21 @@ router.post('/', async (req, res) => {
   res.status(201).json(project(created));
 });
 
+// UPDATE
 router.put('/:id', async (req, res) => {
-  const body = req.body as Partial<DuediligencerecordShape>;
+  const body = req.body as DuediligencerecordBody;
   const now = new Date().toISOString();
-  const updated_data: Record<string, unknown> = {
+  const updateData: Record<string, unknown> = {
     ...body,
     updatedAt: now,
   };
-  delete (updated_data as { id?: unknown }).id;
+  delete (updateData as { id?: unknown }).id;
   const found = await db.collection('duediligencerecords').findById(req.params.id);
   if (!found) {
     res.status(404).json({ error: 'Not found' });
     return;
   }
-  await db.collection('duediligencerecords').updateOne(req.params.id, updated_data);
+  await db.collection('duediligencerecords').updateOne(req.params.id, updateData);
   const updated = await db.collection('duediligencerecords').findById(req.params.id);
   if (!updated) {
     res.status(404).json({ error: 'Not found' });

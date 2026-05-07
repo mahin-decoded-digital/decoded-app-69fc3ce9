@@ -26,15 +26,15 @@ interface Deal {
 
 const router = Router();
 
-router.get('/', async (req, res) => {
+router.get('/', async (_req, res) => {
   const items = await db.collection('deals').find();
   res.json(items.map(project));
 });
 
 router.post('/', async (req, res) => {
   const body = req.body as Partial<Deal>;
-  if (!body || !body.title || !body.clientId) {
-    res.status(400).json({ error: 'title and clientId are required' });
+  if (!body || !body.clientId || !body.title) {
+    res.status(400).json({ error: 'clientId and title are required' });
     return;
   }
   const now = new Date().toISOString();
@@ -62,12 +62,11 @@ router.put('/:id', async (req, res) => {
     updatedAt: now,
   };
   delete (update as { id?: unknown }).id;
-  const found = await db.collection('deals').findById(req.params.id);
+  const found = await db.collection('deals').updateOne(req.params.id, update);
   if (!found) {
     res.status(404).json({ error: 'Not found' });
     return;
   }
-  await db.collection('deals').updateOne(req.params.id, update);
   const updated = await db.collection('deals').findById(req.params.id);
   if (!updated) {
     res.status(404).json({ error: 'Not found' });
@@ -77,12 +76,11 @@ router.put('/:id', async (req, res) => {
 });
 
 router.delete('/:id', async (req, res) => {
-  const found = await db.collection('deals').findById(req.params.id);
-  if (!found) {
+  const deleted = await db.collection('deals').deleteOne(req.params.id);
+  if (!deleted) {
     res.status(404).json({ error: 'Not found' });
     return;
   }
-  await db.collection('deals').deleteOne(req.params.id);
   res.json({ success: true });
 });
 

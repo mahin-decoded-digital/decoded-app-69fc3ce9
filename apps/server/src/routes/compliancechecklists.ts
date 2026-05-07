@@ -9,21 +9,17 @@ function project<T extends WithMongoId>(doc: T): Omit<T, '_id'> & { id: string }
 
 const router = Router();
 
-interface CompliancechecklistBody {
-  dealId?: string;
-  items?: { label: string; completed: boolean; completedAt: Date | null; completedBy: string }[];
-  stage?: 'engagement' | 'search' | 'offer' | 'settlement';
-}
-
-// list
 router.get('/', async (req, res) => {
   const items = await db.collection('compliancechecklists').find();
   res.json(items.map(project));
 });
 
-// create
 router.post('/', async (req, res) => {
-  const body = req.body as CompliancechecklistBody;
+  const body = req.body as {
+    dealId?: string;
+    items?: { label: string; completed: boolean; completedAt: Date | null; completedBy: string }[];
+    stage?: 'engagement' | 'search' | 'offer' | 'settlement';
+  };
   if (!body || !body.dealId) {
     res.status(400).json({ error: 'dealId is required' });
     return;
@@ -44,21 +40,24 @@ router.post('/', async (req, res) => {
   res.status(201).json(project(created));
 });
 
-// update
 router.put('/:id', async (req, res) => {
-  const body = req.body as CompliancechecklistBody;
+  const body = req.body as {
+    dealId?: string;
+    items?: { label: string; completed: boolean; completedAt: Date | null; completedBy: string }[];
+    stage?: 'engagement' | 'search' | 'offer' | 'settlement';
+  };
   const now = new Date().toISOString();
-  const updated_fields: Record<string, unknown> = {
+  const updateData: Record<string, unknown> = {
     ...body,
     updatedAt: now,
   };
-  delete (updated_fields as { id?: unknown }).id;
+  delete (updateData as { id?: unknown }).id;
   const found = await db.collection('compliancechecklists').findById(req.params.id);
   if (!found) {
     res.status(404).json({ error: 'Not found' });
     return;
   }
-  await db.collection('compliancechecklists').updateOne(req.params.id, updated_fields);
+  await db.collection('compliancechecklists').updateOne(req.params.id, updateData);
   const updated = await db.collection('compliancechecklists').findById(req.params.id);
   if (!updated) {
     res.status(404).json({ error: 'Not found' });

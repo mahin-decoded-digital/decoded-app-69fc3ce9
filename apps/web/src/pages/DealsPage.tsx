@@ -27,13 +27,6 @@ function formatBudget(n: number) {
 }
 
 export default function DealsPage() {
-  // === auto fetch-on-mount (backend planner) ===
-  const fetchDeals = useDealStore((s) => s.fetchDeals);
-  useEffect(() => {
-    fetchDeals();
-  }, [fetchDeals]);
-  // === end auto fetch-on-mount ===
-
   const fetchDeals = useDealStore((s) => s.fetchDeals);
   useEffect(() => { fetchDeals(); }, [fetchDeals]);
 

@@ -26,13 +26,6 @@ function formatDate(d: Date | string) {
 }
 
 export default function MeetingsPage() {
-  // === auto fetch-on-mount (backend planner) ===
-  const fetchMeetingnotes = useMeetingStore((s) => s.fetchMeetingnotes);
-  useEffect(() => {
-    fetchMeetingnotes();
-  }, [fetchMeetingnotes]);
-  // === end auto fetch-on-mount ===
-
   const fetchMeetingnotes = useMeetingStore((s) => s.fetchMeetingnotes);
   useEffect(() => { fetchMeetingnotes(); }, [fetchMeetingnotes]);
 
