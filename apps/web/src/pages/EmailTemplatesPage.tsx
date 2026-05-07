@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect } from 'react';
 import { MoreHorizontal, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 import { AppShell } from '@/components/AppShell';
@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import {
   Dialog,
@@ -25,13 +24,23 @@ import type { EmailTemplate } from '@/types';
 const CATEGORIES: Array<{ value: EmailTemplate['category'] | 'all'; label: string }> = [
   { value: 'all', label: 'All' },
   { value: 'welcome', label: 'Welcome' },
-  { value: 'requirement-blast', label: 'Requirement Blast' },
+  { value: 'requirement-blast', label: 'Req. Blast' },
   { value: 'dd-request', label: 'DD Request' },
   { value: 'status-update', label: 'Status Update' },
   { value: 'post-settlement', label: 'Post-Settlement' },
   { value: 'referrer-thanks', label: 'Referrer Thanks' },
   { value: 'other', label: 'Other' },
 ];
+
+const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
+  welcome: { bg: 'hsl(222 84% 16% / 0.10)', text: 'hsl(222 72% 38%)' },
+  'requirement-blast': { bg: 'hsl(210 85% 52% / 0.12)', text: 'hsl(210 78% 36%)' },
+  'dd-request': { bg: 'hsl(39 80% 52% / 0.12)', text: 'hsl(39 70% 38%)' },
+  'status-update': { bg: 'hsl(200 88% 46% / 0.12)', text: 'hsl(200 78% 34%)' },
+  'post-settlement': { bg: 'hsl(142 55% 42% / 0.12)', text: 'hsl(142 50% 30%)' },
+  'referrer-thanks': { bg: 'hsl(280 50% 55% / 0.12)', text: 'hsl(280 45% 38%)' },
+  other: { bg: 'hsl(214 50% 50% / 0.10)', text: 'hsl(214 55% 38%)' },
+};
 
 export default function EmailTemplatesPage() {
   // === auto fetch-on-mount (backend planner) ===
@@ -40,6 +49,9 @@ export default function EmailTemplatesPage() {
     fetchEmailtemplates();
   }, [fetchEmailtemplates]);
   // === end auto fetch-on-mount ===
+
+  const fetchEmailtemplates = useEmailStore((s) => s.fetchEmailtemplates);
+  useEffect(() => { fetchEmailtemplates(); }, [fetchEmailtemplates]);
 
   const templates = useEmailStore((s) => s.templates);
   const addTemplate = useEmailStore((s) => s.addTemplate);
@@ -52,7 +64,6 @@ export default function EmailTemplatesPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
-  // Form
   const [tName, setTName] = useState('');
   const [tCategory, setTCategory] = useState<EmailTemplate['category']>('welcome');
   const [tSubject, setTSubject] = useState('');
@@ -82,8 +93,7 @@ export default function EmailTemplatesPage() {
     if (!validate()) return;
     addTemplate({ name: tName.trim(), category: tCategory, subject: tSubject.trim(), body: tBody.trim(), isActive: tActive });
     toast.success('Template saved.');
-    resetForm();
-    setAddOpen(false);
+    resetForm(); setAddOpen(false);
   }
 
   function handleEditOpen(t: EmailTemplate) {
@@ -100,13 +110,11 @@ export default function EmailTemplatesPage() {
       body: tBody.trim(), isActive: tActive,
     });
     toast.success('Template updated.');
-    setEditTemplate(null);
-    resetForm();
+    setEditTemplate(null); resetForm();
   }
 
   function handleDelete(id: string) {
-    deleteTemplate(id);
-    setDeleteId(null);
+    deleteTemplate(id); setDeleteId(null);
     toast.success('Template deleted.');
   }
 
@@ -162,18 +170,42 @@ export default function EmailTemplatesPage() {
   return (
     <AppShell>
       <div className="p-6 max-w-5xl mx-auto space-y-6">
-        <div className="flex items-start justify-between gap-4">
+        {/* ── Header ── */}
+        <div
+          className="rounded-2xl p-6 flex items-center justify-between gap-4"
+          style={{ background: 'linear-gradient(135deg, hsl(214,72%,26%) 0%, hsl(205,85%,48%) 100%)', boxShadow: '0 4px 20px hsl(214 70% 34% / 0.28)' }}
+        >
           <div>
-            <h1 className="text-xl font-semibold text-foreground">Email Templates</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">A library of 20–30 reusable templates across the engagement lifecycle.</p>
+            <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'hsl(210 75% 80%)' }}>
+              Template Library
+            </p>
+            <h1 className="text-2xl font-bold" style={{ color: 'hsl(0 0% 100%)' }}>Email Templates</h1>
+            <p className="text-sm mt-1" style={{ color: 'hsl(210 60% 80%)' }}>
+              Reusable templates across the entire engagement lifecycle.
+            </p>
           </div>
-          <Button size="sm" onClick={() => setAddOpen(true)}>+ New template</Button>
+          <button
+            onClick={() => setAddOpen(true)}
+            className="btn-gradient flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold"
+          >
+            <Mail size={14} />
+            New template
+          </button>
         </div>
 
         <Tabs defaultValue="all" value={categoryTab} onValueChange={setCategoryTab}>
-          <TabsList className="flex-wrap gap-1">
+          <TabsList
+            className="flex-wrap gap-1 h-auto p-1.5 rounded-xl"
+            style={{ background: 'var(--blue-mist)', borderColor: 'hsl(214 60% 88%)' }}
+          >
             {CATEGORIES.map((c) => (
-              <TabsTrigger key={c.value} value={c.value}>{c.label}</TabsTrigger>
+              <TabsTrigger
+                key={c.value}
+                value={c.value}
+                className="rounded-lg text-xs font-semibold"
+              >
+                {c.label}
+              </TabsTrigger>
             ))}
           </TabsList>
 
@@ -187,33 +219,55 @@ export default function EmailTemplatesPage() {
                 onCta={() => setAddOpen(true)}
               />
             ) : (
-              <div className="space-y-2">
-                {filtered.map((t) => (
-                  <div key={t.id} className="flex items-center gap-4 rounded-lg border border-border bg-card px-4 py-3 shadow-[var(--shadow-card)]">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-sm font-semibold text-foreground">{t.name}</p>
-                        <Badge variant="secondary" className="text-xs capitalize">{t.category.replace('-', ' ')}</Badge>
-                        {!t.isActive && <Badge variant="outline" className="text-xs">Inactive</Badge>}
-                      </div>
-                      <p className="text-xs text-muted-foreground truncate mt-0.5">{t.subject}</p>
-                    </div>
-                    <div className="relative shrink-0">
-                      <button
-                        className="rounded p-1 text-muted-foreground hover:text-foreground hover:bg-[var(--surface-tinted)]"
-                        onClick={() => setOpenMenuId(openMenuId === t.id ? null : t.id)}
+              <div className="space-y-2.5 mt-4">
+                {filtered.map((t) => {
+                  const catStyle = CATEGORY_COLORS[t.category] ?? CATEGORY_COLORS.other;
+                  return (
+                    <div
+                      key={t.id}
+                      className="flex items-center gap-4 rounded-xl border bg-card px-5 py-4 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)] transition-all duration-150"
+                      style={{ borderColor: 'hsl(214 60% 90%)' }}
+                    >
+                      <div
+                        className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0"
+                        style={{ background: catStyle.bg }}
                       >
-                        <MoreHorizontal size={15} />
-                      </button>
-                      {openMenuId === t.id && (
-                        <div className="absolute right-0 top-full mt-1 z-10 w-36 rounded-md border border-border bg-card shadow-[var(--shadow-elevated)]">
-                          <button className="w-full px-3 py-2 text-left text-sm hover:bg-[var(--surface-tinted)]" onClick={() => handleEditOpen(t)}>Edit</button>
-                          <button className="w-full px-3 py-2 text-left text-sm text-destructive hover:bg-destructive/5" onClick={() => { setDeleteId(t.id); setOpenMenuId(null); }}>Delete</button>
+                        <Mail size={16} style={{ color: catStyle.text }} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-sm font-bold text-foreground">{t.name}</p>
+                          <span
+                            className="rounded-lg px-2.5 py-0.5 text-xs font-semibold capitalize"
+                            style={catStyle}
+                          >
+                            {t.category.replace('-', ' ')}
+                          </span>
+                          {!t.isActive && (
+                            <span className="rounded-lg px-2.5 py-0.5 text-xs font-semibold bg-muted text-muted-foreground">
+                              Inactive
+                            </span>
+                          )}
                         </div>
-                      )}
+                        <p className="text-xs text-muted-foreground truncate mt-0.5">{t.subject}</p>
+                      </div>
+                      <div className="relative shrink-0">
+                        <button
+                          className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-[var(--surface-tinted)] transition-colors"
+                          onClick={() => setOpenMenuId(openMenuId === t.id ? null : t.id)}
+                        >
+                          <MoreHorizontal size={15} />
+                        </button>
+                        {openMenuId === t.id && (
+                          <div className="absolute right-0 top-full mt-1 z-10 w-36 rounded-xl border border-border bg-card shadow-[var(--shadow-elevated)] overflow-hidden">
+                            <button className="w-full px-4 py-2.5 text-left text-sm hover:bg-[var(--surface-tinted)] transition-colors" onClick={() => handleEditOpen(t)}>Edit</button>
+                            <button className="w-full px-4 py-2.5 text-left text-sm text-destructive hover:bg-destructive/5 transition-colors" onClick={() => { setDeleteId(t.id); setOpenMenuId(null); }}>Delete</button>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </TabsContent>

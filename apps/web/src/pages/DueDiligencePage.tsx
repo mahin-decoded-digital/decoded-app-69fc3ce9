@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect } from 'react';
 import { FileSearch, Plus, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -36,6 +35,9 @@ export default function DueDiligencePage() {
   }, [fetchOffmarketproperties]);
   // === end auto fetch-on-mount ===
 
+  const fetchOffmarketproperties = usePropertyStore((s) => s.fetchOffmarketproperties);
+  useEffect(() => { fetchOffmarketproperties(); }, [fetchOffmarketproperties]);
+
   const navigate = useNavigate();
   const records = useDDStore((s) => s.records);
   const updateRecord = useDDStore((s) => s.updateRecord);
@@ -50,7 +52,6 @@ export default function DueDiligencePage() {
   const [searchQ, setSearchQ] = useState('');
   const [addCompOpen, setAddCompOpen] = useState(false);
 
-  // Comparable sale form
   const [compAddress, setCompAddress] = useState('');
   const [compPrice, setCompPrice] = useState('');
   const [compDate, setCompDate] = useState('');
@@ -58,7 +59,6 @@ export default function DueDiligencePage() {
   const [compBaths, setCompBaths] = useState('2');
   const [compNotes, setCompNotes] = useState('');
 
-  // DD record inline edit fields
   const [floodUrl, setFloodUrl] = useState('');
   const [hazardUrl, setHazardUrl] = useState('');
   const [summaryNotes, setSummaryNotes] = useState('');
@@ -121,12 +121,8 @@ export default function DueDiligencePage() {
   function handleAddComp() {
     if (!selectedId || !compAddress || !compPrice || !compDate) return;
     addComparableSale(selectedId, {
-      address: compAddress,
-      salePrice: Number(compPrice),
-      saleDate: compDate,
-      bedrooms: Number(compBeds),
-      bathrooms: Number(compBaths),
-      notes: compNotes,
+      address: compAddress, salePrice: Number(compPrice), saleDate: compDate,
+      bedrooms: Number(compBeds), bathrooms: Number(compBaths), notes: compNotes,
     });
     setCompAddress(''); setCompPrice(''); setCompDate(''); setCompBeds('3'); setCompBaths('2'); setCompNotes('');
     setAddCompOpen(false);
@@ -149,21 +145,33 @@ export default function DueDiligencePage() {
   return (
     <AppShell>
       <div className="p-6 max-w-6xl mx-auto space-y-6">
-        <div className="flex items-start justify-between gap-4">
+        {/* ── Header ── */}
+        <div
+          className="rounded-2xl p-6 flex items-center justify-between gap-4"
+          style={{ background: 'linear-gradient(135deg, hsl(210,82%,28%) 0%, hsl(200,88%,48%) 100%)', boxShadow: '0 4px 20px hsl(210 80% 36% / 0.28)' }}
+        >
           <div>
-            <h1 className="text-xl font-semibold text-foreground">Due Diligence</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">DD records are tied to shortlisted properties within engagements.</p>
+            <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'hsl(200 85% 78%)' }}>
+              Risk Assessment
+            </p>
+            <h1 className="text-2xl font-bold" style={{ color: 'hsl(0 0% 100%)' }}>Due Diligence</h1>
+            <p className="text-sm mt-1" style={{ color: 'hsl(205 65% 80%)' }}>
+              DD records are tied to shortlisted properties within engagements.
+            </p>
           </div>
-          <Input
-            placeholder="Search by address or engagement…"
-            value={searchQ}
-            onChange={(e) => setSearchQ(e.target.value)}
-            className="max-w-xs"
-          />
+          <div className="relative max-w-xs">
+            <Input
+              placeholder="Search by address or engagement…"
+              value={searchQ}
+              onChange={(e) => setSearchQ(e.target.value)}
+              className="border-0"
+              style={{ background: 'hsl(0 0% 100% / 0.15)', color: 'hsl(0 0% 100%)', '--tw-placeholder-color': 'hsl(210 60% 80%)' } as React.CSSProperties}
+            />
+          </div>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* DD record list */}
+          {/* ── DD record list ── */}
           <div className="lg:col-span-1 space-y-2">
             {filtered.length === 0 ? (
               <EmptyState
@@ -183,16 +191,35 @@ export default function DueDiligencePage() {
                 return (
                   <button
                     key={r.id}
-                    className={`w-full text-left rounded-lg border bg-card p-3 shadow-[var(--shadow-card)] hover:border-primary/40 transition-colors ${selectedId === r.id ? 'border-primary' : 'border-border'}`}
+                    className="w-full text-left rounded-2xl border bg-card p-4 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)] transition-all duration-150"
+                    style={{
+                      borderColor: selectedId === r.id ? 'hsl(214 70% 60%)' : 'hsl(214 60% 90%)',
+                      boxShadow: selectedId === r.id ? '0 0 0 2px hsl(214 70% 70% / 0.30)' : undefined,
+                    }}
                     onClick={() => handleSelectRecord(r.id)}
                   >
-                    <p className="text-sm font-medium text-foreground truncate">{prop?.streetAddress ?? 'Unknown property'}</p>
-                    <p className="text-xs text-muted-foreground truncate">{deal?.title ?? 'Unknown engagement'}</p>
-                    <div className="mt-2 flex items-center gap-2">
-                      <Progress value={checkedPct} className="flex-1 h-1.5" />
-                      <span className="text-xs text-muted-foreground">{r.comparableSales.length} comps</span>
+                    <div className="flex items-center gap-3 mb-3">
+                      <div
+                        className="h-9 w-9 rounded-lg flex items-center justify-center shrink-0"
+                        style={{ background: 'var(--gradient-cta)' }}
+                      >
+                        <FileSearch size={14} style={{ color: 'hsl(0 0% 100%)' }} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-foreground truncate">{prop?.streetAddress ?? 'Unknown property'}</p>
+                        <p className="text-xs text-muted-foreground truncate">{deal?.title ?? 'Unknown engagement'}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Progress value={checkedPct} className="flex-1 h-2" />
+                      <span className="text-xs text-muted-foreground shrink-0">{r.comparableSales.length} comps</span>
                       {r.reportGeneratedAt && (
-                        <Badge variant="default" className="text-xs">Report</Badge>
+                        <span
+                          className="rounded-lg px-2 py-0.5 text-xs font-semibold shrink-0"
+                          style={{ background: 'hsl(142 55% 40% / 0.12)', color: 'hsl(142 50% 30%)' }}
+                        >
+                          Report ✓
+                        </span>
                       )}
                     </div>
                   </button>
@@ -201,16 +228,32 @@ export default function DueDiligencePage() {
             )}
           </div>
 
-          {/* DD detail panel */}
+          {/* ── DD detail panel ── */}
           <div className="lg:col-span-2">
             {!selected ? (
-              <div className="rounded-lg border border-border bg-card p-8 text-center">
+              <div
+                className="rounded-2xl border p-12 text-center"
+                style={{ borderColor: 'hsl(214 60% 90%)', background: 'var(--blue-frost)' }}
+              >
+                <FileSearch size={32} className="mx-auto mb-3 opacity-30 text-primary" />
                 <p className="text-sm text-muted-foreground">Select a DD record to view details.</p>
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="rounded-lg border border-border bg-card p-4 shadow-[var(--shadow-card)]">
-                  <p className="text-sm font-semibold text-foreground mb-3">Hazard Map Links</p>
+                {/* Hazard maps */}
+                <div
+                  className="rounded-2xl border bg-card p-5 shadow-[var(--shadow-card)]"
+                  style={{ borderColor: 'hsl(214 60% 90%)' }}
+                >
+                  <p className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+                    <span
+                      className="h-6 w-6 rounded-lg flex items-center justify-center text-xs"
+                      style={{ background: 'var(--blue-mist)', color: 'var(--blue-core)' }}
+                    >
+                      🌊
+                    </span>
+                    Hazard Map Links
+                  </p>
                   <div className="space-y-3">
                     <div className="flex gap-2">
                       <div className="flex-1 space-y-1">
@@ -219,62 +262,68 @@ export default function DueDiligencePage() {
                           value={floodUrl}
                           onChange={(e) => setFloodUrl(e.target.value)}
                           placeholder="https://gis.aucklandcouncil.govt.nz/…"
-                          className="text-xs h-8"
+                          className="text-xs h-9"
                         />
                         {!selected.floodMapUrl && (
-                          <p className="text-xs text-[var(--gold-muted)]">Flood map link not yet recorded.</p>
+                          <p className="text-xs" style={{ color: 'var(--gold-muted)' }}>Flood map link not yet recorded.</p>
                         )}
                       </div>
-                      <Button size="sm" variant="outline" className="self-end h-8" onClick={handleSaveFlood}>Save link</Button>
+                      <Button size="sm" variant="outline" className="self-end h-9 shrink-0" onClick={handleSaveFlood}>Save</Button>
                     </div>
                     <div className="flex gap-2">
                       <div className="flex-1 space-y-1">
                         <Label className="text-xs">Natural hazards URL</Label>
-                        <Input
-                          value={hazardUrl}
-                          onChange={(e) => setHazardUrl(e.target.value)}
-                          placeholder="https://…"
-                          className="text-xs h-8"
-                        />
+                        <Input value={hazardUrl} onChange={(e) => setHazardUrl(e.target.value)} placeholder="https://…" className="text-xs h-9" />
                       </div>
-                      <Button size="sm" variant="outline" className="self-end h-8" onClick={handleSaveHazard}>Save link</Button>
+                      <Button size="sm" variant="outline" className="self-end h-9 shrink-0" onClick={handleSaveHazard}>Save</Button>
                     </div>
                   </div>
                 </div>
 
                 {/* Comparable sales */}
-                <div className="rounded-lg border border-border bg-card p-4 shadow-[var(--shadow-card)]">
-                  <div className="flex items-center justify-between mb-3">
-                    <p className="text-sm font-semibold text-foreground">Comparable Sales ({selected.comparableSales.length})</p>
-                    <Button size="sm" variant="outline" className="text-xs h-7 px-2" onClick={() => setAddCompOpen(true)}>
-                      <Plus size={12} className="mr-1" /> Add comparable sale
+                <div
+                  className="rounded-2xl border bg-card p-5 shadow-[var(--shadow-card)]"
+                  style={{ borderColor: 'hsl(214 60% 90%)' }}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-sm font-bold text-foreground">
+                      Comparable Sales
+                      <span
+                        className="ml-2 rounded-full px-2 py-0.5 text-xs font-semibold"
+                        style={{ background: 'var(--blue-mist)', color: 'var(--blue-core)' }}
+                      >
+                        {selected.comparableSales.length}
+                      </span>
+                    </p>
+                    <Button size="sm" variant="outline" className="text-xs h-8 px-3" onClick={() => setAddCompOpen(true)}>
+                      <Plus size={12} className="mr-1" /> Add comp
                     </Button>
                   </div>
                   {selected.comparableSales.length < 5 && (
-                    <div className="mb-3 rounded-md bg-[var(--gold-subtle)] px-3 py-2 text-xs text-[var(--gold-muted)]">
+                    <div className="mb-4 rounded-xl px-4 py-2.5 text-xs" style={{ background: 'hsl(39 80% 52% / 0.10)', color: 'hsl(39 70% 38%)' }}>
                       Add at least 5 comparable sales before generating the report. ({selected.comparableSales.length}/5 added)
                     </div>
                   )}
                   {selected.comparableSales.length === 0 ? (
-                    <p className="text-xs text-muted-foreground">No comparable sales recorded yet.</p>
+                    <p className="text-xs text-muted-foreground py-2">No comparable sales recorded yet.</p>
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full text-xs">
                         <thead>
-                          <tr className="border-b border-border">
-                            <th className="text-left py-1.5 pr-3 font-medium text-muted-foreground">Address</th>
-                            <th className="text-left py-1.5 pr-3 font-medium text-muted-foreground">Price</th>
-                            <th className="text-left py-1.5 pr-3 font-medium text-muted-foreground">Date</th>
-                            <th className="text-left py-1.5 font-medium text-muted-foreground">Beds/Baths</th>
+                          <tr style={{ borderBottom: '1px solid hsl(214 50% 92%)' }}>
+                            <th className="text-left py-2 pr-4 font-bold text-muted-foreground uppercase tracking-wide text-[10px]">Address</th>
+                            <th className="text-left py-2 pr-4 font-bold text-muted-foreground uppercase tracking-wide text-[10px]">Price</th>
+                            <th className="text-left py-2 pr-4 font-bold text-muted-foreground uppercase tracking-wide text-[10px]">Date</th>
+                            <th className="text-left py-2 font-bold text-muted-foreground uppercase tracking-wide text-[10px]">Spec</th>
                           </tr>
                         </thead>
                         <tbody>
                           {selected.comparableSales.map((c, i) => (
-                            <tr key={i} className="border-b border-border last:border-0">
-                              <td className="py-2 pr-3 text-foreground">{c.address}</td>
-                              <td className="py-2 pr-3">${c.salePrice.toLocaleString()}</td>
-                              <td className="py-2 pr-3 text-muted-foreground">{c.saleDate}</td>
-                              <td className="py-2">{c.bedrooms}b{c.bathrooms}ba</td>
+                            <tr key={i} style={{ borderBottom: '1px solid hsl(214 50% 95%)' }}>
+                              <td className="py-2.5 pr-4 text-foreground font-medium">{c.address}</td>
+                              <td className="py-2.5 pr-4 font-bold" style={{ color: 'var(--blue-core)' }}>${c.salePrice.toLocaleString()}</td>
+                              <td className="py-2.5 pr-4 text-muted-foreground">{c.saleDate}</td>
+                              <td className="py-2.5 text-muted-foreground">{c.bedrooms}b{c.bathrooms}ba</td>
                             </tr>
                           ))}
                         </tbody>
@@ -285,20 +334,23 @@ export default function DueDiligencePage() {
 
                 {/* Checklist */}
                 {selected.checklistItems.length > 0 && (
-                  <div className="rounded-lg border border-border bg-card p-4 shadow-[var(--shadow-card)]">
-                    <div className="flex items-center justify-between mb-3">
-                      <p className="text-sm font-semibold text-foreground">Checklist</p>
-                      <span className="text-xs text-muted-foreground">{completedItems}/{totalItems}</span>
+                  <div
+                    className="rounded-2xl border bg-card p-5 shadow-[var(--shadow-card)]"
+                    style={{ borderColor: 'hsl(214 60% 90%)' }}
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-sm font-bold text-foreground">DD Checklist</p>
+                      <span className="text-sm font-bold text-primary">{completedItems}/{totalItems}</span>
                     </div>
-                    <Progress value={(completedItems / Math.max(totalItems, 1)) * 100} className="mb-3" />
+                    <Progress value={(completedItems / Math.max(totalItems, 1)) * 100} className="mb-4 h-2" />
                     <div className="space-y-2">
                       {selected.checklistItems.map((item, i) => (
-                        <label key={i} className="flex items-center gap-2 cursor-pointer">
+                        <label key={i} className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-[var(--blue-frost)] transition-colors">
                           <input
                             type="checkbox"
                             checked={item.completed}
                             onChange={() => toggleChecklistItem(selected.id, i)}
-                            className="rounded border-border"
+                            className="rounded border-border accent-primary"
                           />
                           <span className={`text-sm ${item.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                             {item.item}
@@ -310,23 +362,45 @@ export default function DueDiligencePage() {
                 )}
 
                 {/* Summary notes */}
-                <div className="rounded-lg border border-border bg-card p-4 shadow-[var(--shadow-card)]">
-                  <p className="text-sm font-semibold text-foreground mb-2">Summary Notes</p>
+                <div
+                  className="rounded-2xl border bg-card p-5 shadow-[var(--shadow-card)]"
+                  style={{ borderColor: 'hsl(214 60% 90%)' }}
+                >
+                  <p className="text-sm font-bold text-foreground mb-3">Summary Notes</p>
                   <Textarea value={summaryNotes} onChange={(e) => setSummaryNotes(e.target.value)} rows={3} placeholder="Internal notes about this property's due diligence…" />
-                  <Button size="sm" variant="outline" className="mt-2 h-7 text-xs" onClick={handleSaveSummary}>Save notes</Button>
+                  <Button size="sm" variant="outline" className="mt-3 h-8 text-xs" onClick={handleSaveSummary}>Save notes</Button>
                 </div>
 
                 {/* Generate report */}
-                <div className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
+                <div
+                  className="flex items-center justify-between rounded-2xl border bg-card p-5"
+                  style={{ borderColor: selected.reportGeneratedAt ? 'hsl(142 50% 70%)' : 'hsl(214 60% 90%)' }}
+                >
                   {selected.reportGeneratedAt ? (
-                    <div className="flex items-center gap-2">
-                      <Check size={15} className="text-[var(--status-active)]" />
-                      <span className="text-sm text-foreground">Report generated {formatDate(selected.reportGeneratedAt)}</span>
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="h-9 w-9 rounded-lg flex items-center justify-center"
+                        style={{ background: 'hsl(142 55% 40% / 0.12)' }}
+                      >
+                        <Check size={16} style={{ color: 'hsl(142 55% 38%)' }} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-foreground">Report generated</p>
+                        <p className="text-xs text-muted-foreground">{formatDate(selected.reportGeneratedAt)}</p>
+                      </div>
                     </div>
                   ) : (
-                    <span className="text-sm text-muted-foreground">Report not yet generated</span>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Ready to generate?</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Requires 5+ comparable sales.</p>
+                    </div>
                   )}
-                  <Button size="sm" onClick={handleGenerateReport} disabled={!!selected.reportGeneratedAt}>
+                  <Button
+                    size="sm"
+                    onClick={handleGenerateReport}
+                    disabled={!!selected.reportGeneratedAt}
+                    className="btn-gradient border-0"
+                  >
                     Generate DD report
                   </Button>
                 </div>

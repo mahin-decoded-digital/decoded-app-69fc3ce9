@@ -4,43 +4,68 @@ import type { Deal, OffMarketProperty } from '@/types';
 type DealStatus = Deal['status'];
 type PropertyStatus = OffMarketProperty['status'];
 
-const dealStatusConfig: Record<DealStatus, { label: string; className: string }> = {
-  lead: { label: 'Lead', className: 'bg-[var(--surface-tinted)] text-[var(--status-lead)] border border-[var(--status-lead)]/30' },
-  active: { label: 'Active', className: 'bg-[var(--status-active)]/10 text-[var(--status-active)] border border-[var(--status-active)]/30' },
-  'due-diligence': { label: 'Due Diligence', className: 'bg-[var(--gold-subtle)] text-[var(--gold-muted)] border border-[var(--gold-muted)]/30' },
-  offer: { label: 'Offer', className: 'bg-[var(--status-offer)]/10 text-[var(--status-offer)] border border-[var(--status-offer)]/30' },
-  won: { label: 'Won', className: 'bg-[var(--status-won)]/10 text-[var(--status-won)] border border-[var(--status-won)]/30' },
-  lost: { label: 'Lost', className: 'bg-[var(--status-lost)]/10 text-[var(--status-lost)] border border-[var(--status-lost)]/30' },
+const dealStatusConfig: Record<DealStatus, { label: string; bg: string; color: string }> = {
+  lead:           { label: 'Lead',           bg: 'hsl(214 65% 52% / 0.12)', color: 'hsl(214 65% 38%)' },
+  active:         { label: 'Active',         bg: 'hsl(150 55% 42% / 0.12)', color: 'hsl(150 55% 30%)' },
+  'due-diligence':{ label: 'Due Diligence',  bg: 'hsl(39 80% 52% / 0.14)',  color: 'hsl(39 70% 36%)' },
+  offer:          { label: 'Offer',          bg: 'hsl(280 50% 55% / 0.12)', color: 'hsl(280 50% 38%)' },
+  won:            { label: 'Won',            bg: 'hsl(142 60% 40% / 0.12)', color: 'hsl(142 55% 28%)' },
+  lost:           { label: 'Lost',           bg: 'hsl(0 55% 52% / 0.10)',   color: 'hsl(0 55% 40%)' },
 };
 
-const propertyStatusConfig: Record<PropertyStatus, { label: string; className: string }> = {
-  available: { label: 'Available', className: 'bg-[var(--status-active)]/10 text-[var(--status-active)] border border-[var(--status-active)]/30' },
-  'under-offer': { label: 'Under Offer', className: 'bg-[var(--gold-subtle)] text-[var(--gold-muted)] border border-[var(--gold-muted)]/30' },
-  sold: { label: 'Sold', className: 'bg-[var(--status-lost)]/10 text-[var(--status-lost)] border border-[var(--status-lost)]/30' },
+const propertyStatusConfig: Record<PropertyStatus, { label: string; bg: string; color: string }> = {
+  available:     { label: 'Available',     bg: 'hsl(150 55% 42% / 0.12)', color: 'hsl(150 55% 30%)' },
+  'under-offer': { label: 'Under Offer',   bg: 'hsl(39 80% 52% / 0.14)',  color: 'hsl(39 70% 36%)' },
+  sold:          { label: 'Sold',          bg: 'hsl(0 55% 52% / 0.10)',   color: 'hsl(0 55% 40%)' },
 };
 
-interface DealStatusBadgeProps {
-  status: DealStatus;
-}
+interface DealStatusBadgeProps { status: DealStatus; }
 
 export function DealStatusBadge({ status }: DealStatusBadgeProps) {
-  const cfg = dealStatusConfig[status] || { label: status, className: 'bg-gray-100 text-gray-800 border-gray-200' };
+  const cfg = dealStatusConfig[status] || { label: status, bg: 'hsl(214 40% 90%)', color: 'hsl(214 40% 40%)' };
   return (
-    <span className={cn('inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border whitespace-nowrap', cfg.className)}>
+    <span
+      className="inline-flex items-center rounded-lg px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap"
+      style={{ background: cfg.bg, color: cfg.color }}
+    >
       {cfg.label}
     </span>
   );
 }
 
-interface PropertyStatusBadgeProps {
-  status: PropertyStatus;
-}
+interface PropertyStatusBadgeProps { status: PropertyStatus; }
 
 export function PropertyStatusBadge({ status }: PropertyStatusBadgeProps) {
-  const cfg = propertyStatusConfig[status] || { label: status, className: 'bg-gray-100 text-gray-800 border-gray-200' };
+  const cfg = propertyStatusConfig[status] || { label: status, bg: 'hsl(214 40% 90%)', color: 'hsl(214 40% 40%)' };
   return (
-    <span className={cn('inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border whitespace-nowrap', cfg.className)}>
+    <span
+      className="inline-flex items-center rounded-lg px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap"
+      style={{ background: cfg.bg, color: cfg.color }}
+    >
       {cfg.label}
+    </span>
+  );
+}
+
+// Generic inline badge used in other contexts
+interface StatusBadgeProps { label: string; variant?: 'blue' | 'green' | 'amber' | 'red' | 'purple' | 'default'; }
+
+export function StatusBadge({ label, variant = 'default' }: StatusBadgeProps) {
+  const map = {
+    blue:    { bg: 'hsl(214 65% 52% / 0.12)', color: 'hsl(214 65% 38%)' },
+    green:   { bg: 'hsl(142 55% 42% / 0.12)', color: 'hsl(142 55% 30%)' },
+    amber:   { bg: 'hsl(39 80% 52% / 0.14)',  color: 'hsl(39 70% 36%)' },
+    red:     { bg: 'hsl(0 55% 52% / 0.10)',   color: 'hsl(0 55% 40%)' },
+    purple:  { bg: 'hsl(280 50% 55% / 0.12)', color: 'hsl(280 50% 38%)' },
+    default: { bg: 'hsl(214 40% 92%)',        color: 'hsl(214 55% 38%)' },
+  };
+  const style = map[variant];
+  return (
+    <span
+      className="inline-flex items-center rounded-lg px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap"
+      style={{ background: style.bg, color: style.color }}
+    >
+      {label}
     </span>
   );
 }

@@ -1,5 +1,5 @@
-import { useMemo, useState, useEffect } from 'react'
-import {MoreHorizontal, Rocket, Send} from 'lucide-react';
+import { useMemo, useState, useEffect } from 'react';
+import { MoreHorizontal, Rocket, Send, Search, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { AppShell } from '@/components/AppShell';
 import { EmptyState } from '@/components/EmptyState';
@@ -35,6 +35,9 @@ export default function AgentsPage() {
   }, [fetchDeals]);
   // === end auto fetch-on-mount ===
 
+  const fetchDeals = useDealStore((s) => s.fetchDeals);
+  useEffect(() => { fetchDeals(); }, [fetchDeals]);
+
   const agents = useAgentStore((s) => s.agents);
   const blasts = useAgentStore((s) => s.blasts);
   const searchQuery = useAgentStore((s) => s.searchQuery);
@@ -56,7 +59,6 @@ export default function AgentsPage() {
   const [blastOpen, setBlastOpen] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
-  // Agent form state
   const [agName, setAgName] = useState('');
   const [agEmail, setAgEmail] = useState('');
   const [agPhone, setAgPhone] = useState('');
@@ -67,7 +69,6 @@ export default function AgentsPage() {
   const [agNotes, setAgNotes] = useState('');
   const [agErrors, setAgErrors] = useState<Record<string, string>>({});
 
-  // Blast form state
   const [blastDealId, setBlastDealId] = useState('');
   const [blastGeo, setBlastGeo] = useState<RequirementBlast['geoSegment']>('All');
   const [blastPreferred, setBlastPreferred] = useState(false);
@@ -111,19 +112,12 @@ export default function AgentsPage() {
   function handleAddAgent() {
     if (!validateAgent()) return;
     addAgent({
-      name: agName.trim(),
-      email: agEmail.trim(),
-      phone: agPhone.trim(),
-      agency: agAgency.trim(),
-      geoSegment: agGeo,
-      suburb: agSuburb.trim(),
-      isPreferred: agPreferred,
-      notes: agNotes.trim(),
-      lastContactedAt: null,
+      name: agName.trim(), email: agEmail.trim(), phone: agPhone.trim(),
+      agency: agAgency.trim(), geoSegment: agGeo, suburb: agSuburb.trim(),
+      isPreferred: agPreferred, notes: agNotes.trim(), lastContactedAt: null,
     });
     toast.success('Agent added.');
-    resetAgentForm();
-    setAddOpen(false);
+    resetAgentForm(); setAddOpen(false);
   }
 
   function handleEditOpen(a: Agent) {
@@ -142,38 +136,29 @@ export default function AgentsPage() {
       isPreferred: agPreferred, notes: agNotes.trim(),
     });
     toast.success('Agent updated.');
-    setEditAgent(null);
-    resetAgentForm();
+    setEditAgent(null); resetAgentForm();
   }
 
   function handleDeleteAgent(id: string) {
-    deleteAgent(id);
-    setDeleteId(null);
+    deleteAgent(id); setDeleteId(null);
     toast.success('Agent removed from network.');
   }
 
   function handleSendBlast() {
     const errs: Record<string, string> = {};
     if (!blastDealId) errs.deal = 'Please select an engagement.';
-    if (blastRecipients.length === 0) errs.recipients = 'No agents match the selected filters — adjust geo segment or preferred filter.';
+    if (blastRecipients.length === 0) errs.recipients = 'No agents match the selected filters.';
     setBlastErrors(errs);
     if (Object.keys(errs).length > 0) return;
 
     addBlast({
-      dealId: blastDealId,
-      geoSegment: blastGeo,
-      preferredOnly: blastPreferred,
-      agentIds: blastRecipients.map((a) => a.id),
-      subject: blastSubject,
-      body: blastBody,
-      sentAt: null,
-      status: 'draft',
-      recipientCount: blastRecipients.length,
+      dealId: blastDealId, geoSegment: blastGeo, preferredOnly: blastPreferred,
+      agentIds: blastRecipients.map((a) => a.id), subject: blastSubject, body: blastBody,
+      sentAt: null, status: 'draft', recipientCount: blastRecipients.length,
     });
     const newBlast = useAgentStore.getState().blasts.slice(-1)[0];
     if (newBlast) {
       sendBlast(newBlast.id);
-      // Update lastContactedAt for recipients
       blastRecipients.forEach((a) => updateAgent(a.id, { lastContactedAt: new Date() }));
     }
     toast.success(`Requirement blast sent to ${blastRecipients.length} agents.`);
@@ -185,31 +170,77 @@ export default function AgentsPage() {
 
   const sentBlasts = useMemo(() => blasts.filter((b) => b.status === 'sent'), [blasts]);
 
+  const GEO_COLORS: Record<string, string> = {
+    East: 'hsl(200 85% 40%)',
+    West: 'hsl(222 78% 38%)',
+    North: 'hsl(210 80% 52%)',
+    Central: 'hsl(214 70% 44%)',
+  };
+
   return (
     <AppShell>
       <div className="p-6 max-w-6xl mx-auto space-y-6">
-        <div className="flex items-start justify-between gap-4">
+        {/* ── Header ── */}
+        <div
+          className="rounded-2xl p-6 flex items-center justify-between gap-4"
+          style={{ background: 'linear-gradient(135deg, hsl(200,88%,32%) 0%, hsl(210,85%,50%) 100%)', boxShadow: '0 4px 20px hsl(210 80% 40% / 0.25)' }}
+        >
           <div>
-            <h1 className="text-xl font-semibold text-foreground">Agent Rocket</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">Manage your contacts and send geo-targeted requirement blasts.</p>
+            <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'hsl(205 80% 80%)' }}>
+              Geo-Targeted Network
+            </p>
+            <h1 className="text-2xl font-bold" style={{ color: 'hsl(0 0% 100%)' }}>Agent Rocket</h1>
+            <p className="text-sm mt-1" style={{ color: 'hsl(210 60% 82%)' }}>
+              Manage your contacts and send geo-targeted requirement blasts.
+            </p>
           </div>
           <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={() => setAddOpen(true)}>+ Add agent</Button>
-            <Button size="sm" onClick={() => setBlastOpen(true)}>
-              <Send size={13} className="mr-1.5" />
-              New requirement blast
-            </Button>
+            <button
+              onClick={() => setAddOpen(true)}
+              className="rounded-xl px-4 py-2 text-sm font-semibold"
+              style={{ background: 'hsl(0 0% 100% / 0.15)', color: 'hsl(0 0% 100%)', border: '1px solid hsl(0 0% 100% / 0.25)' }}
+            >
+              + Add agent
+            </button>
+            <button
+              onClick={() => setBlastOpen(true)}
+              className="btn-gradient flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold"
+            >
+              <Send size={13} />
+              New blast
+            </button>
           </div>
         </div>
 
-        {/* Filters */}
+        {/* ── Stats strip ── */}
+        <div className="grid grid-cols-3 gap-4">
+          {[
+            { label: 'Total agents', value: agents.length, color: 'var(--blue-core)' },
+            { label: 'Preferred agents', value: agents.filter((a) => a.isPreferred).length, color: 'var(--blue-bright)' },
+            { label: 'Blasts sent', value: sentBlasts.length, color: 'var(--blue-sky)' },
+          ].map((s) => (
+            <div
+              key={s.label}
+              className="rounded-xl border p-4 bg-card shadow-[var(--shadow-card)]"
+              style={{ borderColor: 'hsl(214 60% 90%)' }}
+            >
+              <p className="text-xs text-muted-foreground mb-1">{s.label}</p>
+              <p className="text-2xl font-bold" style={{ color: s.color }}>{s.value}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Filters ── */}
         <div className="flex flex-wrap gap-3 items-center">
-          <Input
-            placeholder="Search by name or agency…"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="max-w-xs"
-          />
+          <div className="relative">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search by name or agency…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 max-w-xs"
+            />
+          </div>
           <Select value={geoFilter} onChange={(e) => setGeoFilter(e.target.value)} className="max-w-[150px]">
             <option value="">All segments</option>
             <option value="East">East</option>
@@ -221,10 +252,10 @@ export default function AgentsPage() {
             <Switch checked={preferredOnly} onCheckedChange={setPreferredOnly} />
             Preferred only
           </label>
-          <span className="text-xs text-muted-foreground">{filtered.length} agent{filtered.length !== 1 ? 's' : ''} matched</span>
+          <span className="text-xs text-muted-foreground ml-1">{filtered.length} agent{filtered.length !== 1 ? 's' : ''} matched</span>
         </div>
 
-        {/* Agent list */}
+        {/* ── Agent table ── */}
         {filtered.length === 0 ? (
           <EmptyState
             icon={<Rocket size={22} />}
@@ -234,48 +265,79 @@ export default function AgentsPage() {
             onCta={() => setAddOpen(true)}
           />
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-border bg-card shadow-[var(--shadow-card)]">
+          <div
+            className="rounded-2xl border overflow-hidden bg-card shadow-[var(--shadow-card)]"
+            style={{ borderColor: 'hsl(214 60% 90%)' }}
+          >
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-border bg-[var(--surface-subtle)]">
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide">Name</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide hidden sm:table-cell">Agency</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide">Geo</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide hidden md:table-cell">Last contacted</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide">Status</th>
-                  <th className="w-10 px-4 py-3" />
+                <tr style={{ background: 'var(--blue-mist)', borderBottom: '1px solid hsl(214 60% 88%)' }}>
+                  <th className="px-5 py-3.5 text-left text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--blue-deep)' }}>Name</th>
+                  <th className="px-5 py-3.5 text-left text-xs font-bold uppercase tracking-wide hidden sm:table-cell" style={{ color: 'var(--blue-deep)' }}>Agency</th>
+                  <th className="px-5 py-3.5 text-left text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--blue-deep)' }}>Segment</th>
+                  <th className="px-5 py-3.5 text-left text-xs font-bold uppercase tracking-wide hidden md:table-cell" style={{ color: 'var(--blue-deep)' }}>Last contacted</th>
+                  <th className="px-5 py-3.5 text-left text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--blue-deep)' }}>Status</th>
+                  <th className="w-10 px-5 py-3.5" />
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((agent) => (
-                  <tr key={agent.id} className="border-b border-border last:border-0 hover:bg-[var(--surface-subtle)] transition-colors">
-                    <td className="px-4 py-3">
-                      <p className="font-medium text-foreground">{agent.name}</p>
-                      <p className="text-xs text-muted-foreground">{agent.email}</p>
+                {filtered.map((agent, idx) => (
+                  <tr
+                    key={agent.id}
+                    className="border-b last:border-0 hover:bg-[var(--blue-frost)] transition-colors"
+                    style={{ borderColor: 'hsl(214 50% 93%)' }}
+                  >
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="h-8 w-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"
+                          style={{
+                            background: `hsl(${210 + (idx * 7) % 20} 75% ${42 + (idx * 5) % 18}%)`,
+                            color: 'hsl(0 0% 100%)',
+                          }}
+                        >
+                          {agent.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-foreground">{agent.name}</p>
+                          <p className="text-xs text-muted-foreground">{agent.email}</p>
+                        </div>
+                      </div>
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{agent.agency}</td>
-                    <td className="px-4 py-3">
-                      <Badge variant="secondary" className="text-xs">{agent.geoSegment}</Badge>
+                    <td className="px-5 py-3.5 text-muted-foreground hidden sm:table-cell">{agent.agency}</td>
+                    <td className="px-5 py-3.5">
+                      <span
+                        className="inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-semibold"
+                        style={{
+                          background: `${GEO_COLORS[agent.geoSegment] ?? 'var(--blue-core)'}20`,
+                          color: GEO_COLORS[agent.geoSegment] ?? 'var(--blue-core)',
+                        }}
+                      >
+                        {agent.geoSegment}
+                      </span>
                     </td>
-                    <td className="px-4 py-3 text-xs text-muted-foreground hidden md:table-cell">{formatDate(agent.lastContactedAt)}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-5 py-3.5 text-xs text-muted-foreground hidden md:table-cell">{formatDate(agent.lastContactedAt)}</td>
+                    <td className="px-5 py-3.5">
                       {agent.isPreferred && (
-                        <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-[var(--gold-subtle)] text-[var(--gold-muted)]">
-                          Preferred
+                        <span
+                          className="inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-semibold"
+                          style={{ background: 'var(--blue-mist)', color: 'var(--blue-core)' }}
+                        >
+                          ★ Preferred
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3 relative">
+                    <td className="px-5 py-3.5 relative">
                       <button
-                        className="rounded p-1 text-muted-foreground hover:text-foreground hover:bg-[var(--surface-tinted)]"
+                        className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-[var(--surface-tinted)] transition-colors"
                         onClick={() => setOpenMenuId(openMenuId === agent.id ? null : agent.id)}
                       >
                         <MoreHorizontal size={15} />
                       </button>
                       {openMenuId === agent.id && (
-                        <div className="absolute right-0 top-full mt-1 z-10 w-36 rounded-md border border-border bg-card shadow-[var(--shadow-elevated)]">
-                          <button className="w-full px-3 py-2 text-left text-sm hover:bg-[var(--surface-tinted)]" onClick={() => handleEditOpen(agent)}>Edit</button>
-                          <button className="w-full px-3 py-2 text-left text-sm text-destructive hover:bg-destructive/5" onClick={() => { setDeleteId(agent.id); setOpenMenuId(null); }}>Delete</button>
+                        <div className="absolute right-0 top-full mt-1 z-10 w-36 rounded-xl border border-border bg-card shadow-[var(--shadow-elevated)] overflow-hidden">
+                          <button className="w-full px-4 py-2.5 text-left text-sm hover:bg-[var(--surface-tinted)] transition-colors" onClick={() => handleEditOpen(agent)}>Edit</button>
+                          <button className="w-full px-4 py-2.5 text-left text-sm text-destructive hover:bg-destructive/5 transition-colors" onClick={() => { setDeleteId(agent.id); setOpenMenuId(null); }}>Delete</button>
                         </div>
                       )}
                     </td>
@@ -286,22 +348,33 @@ export default function AgentsPage() {
           </div>
         )}
 
-        {/* Blast history */}
+        {/* ── Blast history ── */}
         {sentBlasts.length > 0 && (
           <div className="space-y-3">
-            <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">Requirement Blast History</h2>
-            <div className="rounded-lg border border-border bg-card shadow-[var(--shadow-card)] divide-y divide-border">
+            <h2 className="text-xs font-bold text-foreground uppercase tracking-widest flex items-center gap-2">
+              <Send size={13} className="text-primary" />
+              Requirement Blast History
+            </h2>
+            <div
+              className="rounded-2xl border bg-card shadow-[var(--shadow-card)] divide-y overflow-hidden"
+              style={{ borderColor: 'hsl(214 60% 90%)', borderTopColor: 'hsl(214 60% 90%)' }}
+            >
               {sentBlasts.map((b) => {
                 const deal = deals.find((d) => d.id === b.dealId);
                 return (
-                  <div key={b.id} className="px-4 py-3 flex items-center justify-between gap-4">
+                  <div key={b.id} className="px-5 py-4 flex items-center justify-between gap-4 hover:bg-[var(--blue-frost)] transition-colors">
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{b.subject}</p>
-                      <p className="text-xs text-muted-foreground">{deal?.title ?? 'Unknown engagement'} · {b.geoSegment} · {b.recipientCount} recipients</p>
+                      <p className="text-sm font-semibold text-foreground truncate">{b.subject}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{deal?.title ?? 'Unknown engagement'} · {b.geoSegment} · {b.recipientCount} recipients</p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <span className="text-xs text-muted-foreground">{formatDate(b.sentAt)}</span>
-                      <Badge variant="default" className="text-xs">Sent</Badge>
+                      <span
+                        className="rounded-lg px-2.5 py-1 text-xs font-semibold"
+                        style={{ background: 'var(--blue-mist)', color: 'var(--blue-core)' }}
+                      >
+                        Sent
+                      </span>
                     </div>
                   </div>
                 );
@@ -401,8 +474,11 @@ export default function AgentsPage() {
                 </label>
               </div>
             </div>
-            <div className="rounded-md bg-[var(--surface-tinted)] px-3 py-2 text-sm">
-              <span className="font-medium text-foreground">{blastRecipients.length}</span>
+            <div
+              className="rounded-xl px-4 py-3 text-sm"
+              style={{ background: 'var(--blue-mist)' }}
+            >
+              <span className="font-bold" style={{ color: 'var(--blue-core)' }}>{blastRecipients.length}</span>
               <span className="text-muted-foreground"> agent{blastRecipients.length !== 1 ? 's' : ''} will receive this blast</span>
             </div>
             {blastErrors.recipients && <p className="text-xs text-destructive">{blastErrors.recipients}</p>}
@@ -417,7 +493,10 @@ export default function AgentsPage() {
           </div>
           <DialogFooter className="gap-2">
             <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
-            <Button onClick={handleSendBlast}>Send requirement blast</Button>
+            <Button onClick={handleSendBlast}>
+              <Send size={13} className="mr-1.5" />
+              Send requirement blast
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -46,7 +46,6 @@ export function AppShell({ children }: AppShellProps) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Sync class on mount in case of SSR/hydration mismatch
   useEffect(() => {
     setDark(isDark);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -71,36 +70,54 @@ export function AppShell({ children }: AppShellProps) {
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-20 bg-foreground/20 lg:hidden"
+          className="fixed inset-0 z-20 bg-[var(--blue-midnight)]/60 backdrop-blur-sm lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* Sidebar */}
+      {/* ── Sidebar ── */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-30 flex w-[var(--sidebar-width)] flex-col bg-card border-r border-border transition-transform duration-200',
+          'fixed inset-y-0 left-0 z-30 flex w-[var(--sidebar-width)] flex-col transition-transform duration-200',
+          'shadow-[var(--shadow-sidebar)]',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full',
           'lg:relative lg:translate-x-0'
         )}
+        style={{ background: 'var(--sidebar-bg)' }}
       >
-        {/* Logo */}
-        <div className="flex h-[var(--topbar-height)] items-center gap-3 px-4 border-b border-border shrink-0">
-          <img
-            src="https://decoded-studios-storage.s3.ap-southeast-2.amazonaws.com/public/martelli-buyers-pngtransparent-db7c1049.png"
-            alt="Martelli Connect"
-            className="h-8 w-auto object-contain"
-          />
+        {/* Logo area */}
+        <div
+          className="flex h-[var(--topbar-height)] items-center gap-3 px-4 shrink-0"
+          style={{
+            background: 'var(--sidebar-logo-bg)',
+            borderBottom: '1px solid var(--sidebar-border)',
+          }}
+        >
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <img
+              src="https://decoded-studios-storage.s3.ap-southeast-2.amazonaws.com/public/martelli-buyers-pngtransparent-db7c1049.png"
+              alt="Martelli Connect"
+              className="h-8 w-auto object-contain brightness-0 invert"
+            />
+          </div>
           <button
-            className="ml-auto lg:hidden text-muted-foreground hover:text-foreground"
+            className="ml-auto lg:hidden"
+            style={{ color: 'var(--sidebar-text-muted)' }}
             onClick={() => setSidebarOpen(false)}
           >
             <X size={18} />
           </button>
         </div>
 
+        {/* Nav label */}
+        <div className="px-4 pt-5 pb-2">
+          <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--sidebar-text-muted)' }}>
+            Navigation
+          </span>
+        </div>
+
         {/* Nav items */}
-        <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-0.5">
+        <nav className="flex-1 overflow-y-auto px-3 space-y-0.5">
           {NAV_ITEMS.map(({ path, label, icon: Icon }) => (
             <NavLink
               key={path}
@@ -108,12 +125,15 @@ export function AppShell({ children }: AppShellProps) {
               onClick={() => setSidebarOpen(false)}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
                   isActive
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-[var(--surface-tinted)] hover:text-foreground'
+                    ? 'sidebar-nav-active'
+                    : 'hover:bg-[var(--sidebar-hover)]'
                 )
               }
+              style={({ isActive }) => ({
+                color: isActive ? 'var(--sidebar-active-text)' : 'var(--sidebar-text)',
+              })}
             >
               <Icon size={16} />
               {label}
@@ -121,55 +141,79 @@ export function AppShell({ children }: AppShellProps) {
           ))}
         </nav>
 
-        {/* Theme toggle + User section */}
-        <div className="border-t border-border p-3 shrink-0 space-y-1 relative">
-          {/* Theme toggle row */}
+        {/* Divider */}
+        <div className="mx-4 my-2 h-px" style={{ background: 'var(--sidebar-border)' }} />
+
+        {/* Bottom section: theme + user */}
+        <div className="px-3 pb-4 shrink-0 space-y-1 relative">
+          {/* Theme toggle */}
           <button
             onClick={toggleTheme}
-            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-[var(--surface-tinted)] hover:text-foreground transition-colors"
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-150"
+            style={{ color: 'var(--sidebar-text)' }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--sidebar-hover)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
             aria-label="Toggle theme"
           >
             <span className="flex h-5 w-5 items-center justify-center">
               {isDark ? <Sun size={15} /> : <Moon size={15} />}
             </span>
             <span className="flex-1 text-left">{isDark ? 'Light mode' : 'Dark mode'}</span>
-            {/* Toggle pill */}
             <span
               className={cn(
                 'relative inline-flex h-5 w-9 shrink-0 items-center rounded-full border-2 border-transparent transition-colors duration-200',
-                isDark ? 'bg-primary' : 'bg-muted'
+                isDark ? 'bg-[var(--blue-bright)]' : 'bg-[var(--sidebar-text-muted)]/40'
               )}
             >
               <span
                 className={cn(
-                  'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-card shadow transition-transform duration-200',
+                  'pointer-events-none inline-block h-4 w-4 transform rounded-full shadow transition-transform duration-200',
                   isDark ? 'translate-x-4' : 'translate-x-0'
                 )}
+                style={{ background: 'var(--sidebar-active-text)' }}
               />
             </span>
           </button>
 
           {/* User pill */}
           <button
-            className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm hover:bg-[var(--surface-tinted)] transition-colors"
+            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-all duration-150"
+            style={{ color: 'var(--sidebar-text)' }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--sidebar-hover)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
             onClick={() => setUserMenuOpen((o) => !o)}
           >
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-semibold">
+            <div
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+              style={{
+                background: 'var(--gradient-cta)',
+                color: 'hsl(0 0% 100%)',
+                boxShadow: 'var(--shadow-cta)',
+              }}
+            >
               {initials}
             </div>
             <div className="flex-1 text-left min-w-0">
-              <p className="font-medium text-foreground truncate text-xs">{currentUser?.name}</p>
-              <p className="text-muted-foreground truncate text-xs capitalize">
+              <p className="font-semibold truncate text-xs" style={{ color: 'hsl(0 0% 100% / 0.9)' }}>
+                {currentUser?.name}
+              </p>
+              <p className="truncate text-xs capitalize" style={{ color: 'var(--sidebar-text-muted)' }}>
                 {currentUser?.role}
               </p>
             </div>
-            <ChevronDown size={14} className="text-muted-foreground shrink-0" />
+            <ChevronDown size={13} style={{ color: 'var(--sidebar-text-muted)' }} />
           </button>
 
           {userMenuOpen && (
-            <div className="absolute bottom-full left-3 right-3 mb-1 bg-card border border-border rounded-md shadow-[var(--shadow-elevated)] z-10">
+            <div
+              className="absolute bottom-full left-3 right-3 mb-1 rounded-xl border shadow-[var(--shadow-elevated)] z-10 overflow-hidden"
+              style={{ background: 'var(--sidebar-bg)', borderColor: 'var(--sidebar-border)' }}
+            >
               <button
-                className="flex w-full items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-[var(--surface-tinted)] rounded-md transition-colors"
+                className="flex w-full items-center gap-2 px-4 py-2.5 text-sm transition-colors"
+                style={{ color: 'var(--sidebar-text)' }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--sidebar-hover)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                 onClick={handleLogout}
               >
                 <LogOut size={14} />
@@ -180,12 +224,18 @@ export function AppShell({ children }: AppShellProps) {
         </div>
       </aside>
 
-      {/* Main content area */}
+      {/* ── Main area ── */}
       <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
-        {/* Topbar (mobile) */}
-        <header className="flex h-[var(--topbar-height)] items-center gap-3 px-4 bg-card border-b border-border lg:hidden shrink-0">
+        {/* Mobile topbar */}
+        <header
+          className="flex h-[var(--topbar-height)] items-center gap-3 px-4 lg:hidden shrink-0"
+          style={{
+            background: 'var(--sidebar-bg)',
+            borderBottom: '1px solid var(--sidebar-border)',
+          }}
+        >
           <button
-            className="text-muted-foreground hover:text-foreground"
+            style={{ color: 'var(--sidebar-text)' }}
             onClick={() => setSidebarOpen(true)}
           >
             <Menu size={20} />
@@ -193,17 +243,20 @@ export function AppShell({ children }: AppShellProps) {
           <img
             src="https://decoded-studios-storage.s3.ap-southeast-2.amazonaws.com/public/martelli-buyers-pngtransparent-db7c1049.png"
             alt="Martelli Connect"
-            className="h-7 w-auto object-contain"
+            className="h-7 w-auto object-contain brightness-0 invert"
           />
-          {/* Mobile theme toggle */}
           <button
             onClick={toggleTheme}
-            className="ml-auto flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-[var(--surface-tinted)] hover:text-foreground transition-colors"
+            className="ml-auto flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
+            style={{ color: 'var(--sidebar-text)' }}
             aria-label="Toggle theme"
           >
             {isDark ? <Sun size={16} /> : <Moon size={16} />}
           </button>
         </header>
+
+        {/* Blue accent strip at top of content */}
+        <div className="accent-strip shrink-0" />
 
         {/* Page content */}
         <main className="flex-1 overflow-y-auto">{children}</main>

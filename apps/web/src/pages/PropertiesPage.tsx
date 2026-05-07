@@ -1,5 +1,5 @@
-import { useMemo, useState, useEffect } from 'react'
-import { MoreHorizontal, Building2 } from 'lucide-react';
+import { useMemo, useState, useEffect } from 'react';
+import {MoreHorizontal, Building2, Search, Bell, BarChart, MapPin} from 'lucide-react';
 import { toast } from 'sonner';
 import { AppShell } from '@/components/AppShell';
 import { PropertyStatusBadge } from '@/components/StatusBadge';
@@ -41,6 +41,9 @@ export default function PropertiesPage() {
   }, [fetchOffmarketproperties]);
   // === end auto fetch-on-mount ===
 
+  const fetchOffmarketproperties = usePropertyStore((s) => s.fetchOffmarketproperties);
+  useEffect(() => { fetchOffmarketproperties(); }, [fetchOffmarketproperties]);
+
   const properties = usePropertyStore((s) => s.properties);
   const searchQuery = usePropertyStore((s) => s.searchQuery);
   const statusFilter = usePropertyStore((s) => s.statusFilter);
@@ -55,7 +58,6 @@ export default function PropertiesPage() {
   const [editProp, setEditProp] = useState<OffMarketProperty | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
-  // Form state
   const [streetAddress, setStreetAddress] = useState('');
   const [suburb, setSuburb] = useState('');
   const [priceGuide, setPriceGuide] = useState('');
@@ -219,31 +221,52 @@ export default function PropertiesPage() {
   return (
     <AppShell>
       <div className="p-6 max-w-6xl mx-auto space-y-6">
-        <div className="flex items-start justify-between gap-4">
+        {/* ── Header ── */}
+        <div
+          className="rounded-2xl p-6 flex items-center justify-between gap-4"
+          style={{ background: 'linear-gradient(135deg, hsl(214,72%,30%) 0%, hsl(210,85%,48%) 100%)', boxShadow: '0 4px 20px hsl(214 72% 38% / 0.25)' }}
+        >
           <div>
-            <h1 className="text-xl font-semibold text-foreground">Off-Market Database</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">A global library of properties reusable across all engagements.</p>
+            <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'hsl(210 80% 78%)' }}>
+              Off-Market Database
+            </p>
+            <h1 className="text-2xl font-bold" style={{ color: 'hsl(0 0% 100%)' }}>Properties</h1>
+            <p className="text-sm mt-1" style={{ color: 'hsl(210 60% 80%)' }}>
+              A global library of properties reusable across all engagements.
+            </p>
           </div>
-          <Button size="sm" onClick={() => setAddOpen(true)}>+ Add property</Button>
+          <button
+            onClick={() => setAddOpen(true)}
+            className="rounded-xl px-5 py-2.5 text-sm font-semibold whitespace-nowrap"
+            style={{ background: 'hsl(0 0% 100% / 0.18)', color: 'hsl(0 0% 100%)', border: '1px solid hsl(0 0% 100% / 0.30)' }}
+          >
+            + Add property
+          </button>
         </div>
 
-        {/* Filters */}
+        {/* ── Filters ── */}
         <div className="flex flex-col sm:flex-row gap-3">
-          <Input
-            placeholder="Search by address or suburb…"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="max-w-xs"
-          />
+          <div className="relative flex-1 max-w-xs">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search by address or suburb…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
           <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="max-w-[180px]">
             <option value="">All statuses</option>
             <option value="available">Available</option>
             <option value="under-offer">Under Offer</option>
             <option value="sold">Sold</option>
           </Select>
+          <span className="self-center text-xs text-muted-foreground">
+            {filtered.length} propert{filtered.length !== 1 ? 'ies' : 'y'}
+          </span>
         </div>
 
-        {/* Grid */}
+        {/* ── Grid ── */}
         {filtered.length === 0 ? (
           <EmptyState
             icon={<Building2 size={22} />}
@@ -253,56 +276,67 @@ export default function PropertiesPage() {
             onCta={() => setAddOpen(true)}
           />
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {filtered.map((p, idx) => {
               const sourceAgent = agents.find((a) => a.id === p.sourceAgentId);
               const imgSrc = PROP_IMAGES[idx % PROP_IMAGES.length];
               return (
-                <div key={p.id} className="rounded-lg border border-border bg-card overflow-hidden shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)] transition-shadow">
-                  <div className="relative h-40 overflow-hidden">
-                    <img src={imgSrc} alt={p.streetAddress} className="w-full h-full object-cover" crossOrigin="anonymous" />
-                    <div className="absolute top-2 right-2">
+                <div
+                  key={p.id}
+                  className="rounded-2xl border bg-card overflow-hidden shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)] transition-all duration-200 group"
+                  style={{ borderColor: 'hsl(214 60% 90%)' }}
+                >
+                  <div className="relative h-44 overflow-hidden">
+                    <img src={imgSrc} alt={p.streetAddress} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" crossOrigin="anonymous" />
+                    {/* Gradient overlay */}
+                    <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, transparent 50%, hsl(222 84% 14% / 0.6) 100%)' }} />
+                    <div className="absolute top-3 right-3">
                       <PropertyStatusBadge status={p.status} />
+                    </div>
+                    <div className="absolute bottom-3 left-3">
+                      <span className="text-lg font-bold" style={{ color: 'hsl(0 0% 100%)' }}>
+                        {formatBudget(p.priceGuide)}
+                      </span>
                     </div>
                   </div>
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-foreground truncate">{p.streetAddress}</p>
-                        <p className="text-xs text-muted-foreground">{p.suburb}</p>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold text-foreground truncate">{p.streetAddress}</p>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <MapPin size={11} className="text-muted-foreground shrink-0" />
+                          <p className="text-xs text-muted-foreground truncate">{p.suburb}</p>
+                        </div>
                       </div>
                       <div className="relative shrink-0">
                         <button
-                          className="rounded p-1 text-muted-foreground hover:text-foreground hover:bg-[var(--surface-tinted)]"
+                          className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-[var(--surface-tinted)] transition-colors"
                           onClick={() => setOpenMenuId(openMenuId === p.id ? null : p.id)}
                         >
                           <MoreHorizontal size={15} />
                         </button>
                         {openMenuId === p.id && (
-                          <div className="absolute right-0 top-full mt-1 z-10 w-36 rounded-md border border-border bg-card shadow-[var(--shadow-elevated)]">
-                            <button
-                              className="w-full px-3 py-2 text-left text-sm hover:bg-[var(--surface-tinted)] transition-colors"
-                              onClick={() => handleEditOpen(p)}
-                            >
-                              Edit
-                            </button>
-                            <button
-                              className="w-full px-3 py-2 text-left text-sm text-destructive hover:bg-destructive/5 transition-colors"
-                              onClick={() => { setDeleteId(p.id); setOpenMenuId(null); }}
-                            >
-                              Delete
-                            </button>
+                          <div className="absolute right-0 top-full mt-1 z-10 w-36 rounded-xl border border-border bg-card shadow-[var(--shadow-elevated)] overflow-hidden">
+                            <button className="w-full px-4 py-2.5 text-left text-sm hover:bg-[var(--surface-tinted)] transition-colors" onClick={() => handleEditOpen(p)}>Edit</button>
+                            <button className="w-full px-4 py-2.5 text-left text-sm text-destructive hover:bg-destructive/5 transition-colors" onClick={() => { setDeleteId(p.id); setOpenMenuId(null); }}>Delete</button>
                           </div>
                         )}
                       </div>
                     </div>
-                    <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
-                      <span className="font-semibold text-foreground">{formatBudget(p.priceGuide)}</span>
-                      <span>{p.bedrooms}b · {p.bathrooms}ba</span>
+                    <div
+                      className="mt-3 flex items-center gap-3 text-xs rounded-lg px-3 py-2"
+                      style={{ background: 'var(--blue-mist)', color: 'var(--blue-deep)' }}
+                    >
+                      <Bell size={12} />
+                      <span className="font-semibold">{p.bedrooms} bed</span>
+                      <BarChart size={12} />
+                      <span className="font-semibold">{p.bathrooms} bath</span>
+                      {sourceAgent && (
+                        <>
+                          <span className="ml-auto text-muted-foreground truncate">Via {sourceAgent.name}</span>
+                        </>
+                      )}
                     </div>
-                    {sourceAgent && (
-                      <p className="mt-1 text-xs text-muted-foreground truncate">Via {sourceAgent.name}</p>
-                    )}
                   </div>
                 </div>
               );

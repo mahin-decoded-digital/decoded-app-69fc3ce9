@@ -7,8 +7,10 @@ function project<T extends WithMongoId>(doc: T): Omit<T, '_id'> & { id: string }
   return { id: _id, ...rest } as Omit<T, '_id'> & { id: string };
 }
 
-interface Requirementblast {
-  dealId: string;
+const router = Router();
+
+interface RequirementblastBody {
+  dealId?: string;
   geoSegment?: 'East' | 'West' | 'North' | 'Central' | 'All';
   preferredOnly?: boolean;
   agentIds?: string[];
@@ -19,15 +21,8 @@ interface Requirementblast {
   recipientCount?: number;
 }
 
-const router = Router();
-
-router.get('/', async (req, res) => {
-  const items = await db.collection('requirementblasts').find();
-  res.json(items.map(project));
-});
-
 router.post('/', async (req, res) => {
-  const body = req.body as Partial<Requirementblast>;
+  const body = req.body as RequirementblastBody;
   if (!body || !body.dealId) {
     res.status(400).json({ error: 'dealId is required' });
     return;
@@ -50,19 +45,19 @@ router.post('/', async (req, res) => {
 });
 
 router.put('/:id', async (req, res) => {
-  const body = req.body as Partial<Requirementblast>;
+  const body = req.body as RequirementblastBody;
   const now = new Date().toISOString();
-  const updateData: Record<string, unknown> = {
+  const update: Record<string, unknown> = {
     ...body,
     updatedAt: now,
   };
-  delete (updateData as { id?: unknown }).id;
+  delete (update as { id?: unknown }).id;
   const found = await db.collection('requirementblasts').findById(req.params.id);
   if (!found) {
     res.status(404).json({ error: 'Not found' });
     return;
   }
-  await db.collection('requirementblasts').updateOne(req.params.id, updateData);
+  await db.collection('requirementblasts').updateOne(req.params.id, update);
   const updated = await db.collection('requirementblasts').findById(req.params.id);
   if (!updated) {
     res.status(404).json({ error: 'Not found' });

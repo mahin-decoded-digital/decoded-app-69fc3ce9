@@ -15,9 +15,9 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const body = req.body as Partial<{
-    name: string;
-    email: string;
+  const body = req.body as {
+    name?: string;
+    email?: string;
     phone?: string;
     agency?: string;
     geoSegment?: 'East' | 'West' | 'North' | 'Central';
@@ -25,13 +25,11 @@ router.post('/', async (req, res) => {
     suburb?: string;
     lastContactedAt?: Date | null;
     notes?: string;
-  }>;
-
+  };
   if (!body || !body.name) {
     res.status(400).json({ error: 'name is required' });
     return;
   }
-
   const now = new Date().toISOString();
   const doc: Record<string, unknown> = {
     ...body,
@@ -39,7 +37,6 @@ router.post('/', async (req, res) => {
     updatedAt: now,
   };
   delete (doc as { id?: unknown }).id;
-
   const id = await db.collection('agents').insertOne(doc);
   const created = await db.collection('agents').findById(id);
   if (!created) {
@@ -50,9 +47,9 @@ router.post('/', async (req, res) => {
 });
 
 router.put('/:id', async (req, res) => {
-  const body = req.body as Partial<{
-    name: string;
-    email: string;
+  const body = req.body as {
+    name?: string;
+    email?: string;
     phone?: string;
     agency?: string;
     geoSegment?: 'East' | 'West' | 'North' | 'Central';
@@ -60,16 +57,13 @@ router.put('/:id', async (req, res) => {
     suburb?: string;
     lastContactedAt?: Date | null;
     notes?: string;
-  }>;
-
+  };
   const now = new Date().toISOString();
-  const found = await db.collection('agents').findById(req.params.id);
-  if (!found) {
+  const updated_flag = await db.collection('agents').updateOne(req.params.id, { ...body, updatedAt: now });
+  if (!updated_flag) {
     res.status(404).json({ error: 'Not found' });
     return;
   }
-
-  await db.collection('agents').updateOne(req.params.id, { ...body, updatedAt: now });
   const updated = await db.collection('agents').findById(req.params.id);
   if (!updated) {
     res.status(404).json({ error: 'Not found' });

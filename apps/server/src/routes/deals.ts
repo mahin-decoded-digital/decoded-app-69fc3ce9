@@ -7,34 +7,32 @@ function project<T extends WithMongoId>(doc: T): Omit<T, '_id'> & { id: string }
   return { id: _id, ...rest } as Omit<T, '_id'> & { id: string };
 }
 
-interface Deal {
-  clientId: string;
-  agentId?: string;
-  title: string;
-  status?: 'lead' | 'active' | 'due-diligence' | 'offer' | 'won' | 'lost';
-  suburb?: string;
-  budgetMin?: number;
-  budgetMax?: number;
-  bedrooms?: number;
-  bathrooms?: number;
-  brief?: string;
-  geoSegment?: 'East' | 'West' | 'North' | 'Central';
-  aiConsentGiven?: boolean;
-  agreementStatus?: 'pending' | 'sent' | 'signed' | 'none';
-  invoiceStatus?: 'none' | 'deposit-sent' | 'deposit-paid' | 'final-sent' | 'final-paid';
-}
-
 const router = Router();
 
-router.get('/', async (_req, res) => {
+router.get('/', async (req, res) => {
   const items = await db.collection('deals').find();
   res.json(items.map(project));
 });
 
 router.post('/', async (req, res) => {
-  const body = req.body as Partial<Deal>;
-  if (!body || !body.clientId || !body.title) {
-    res.status(400).json({ error: 'clientId and title are required' });
+  const body = req.body as {
+    clientId?: string;
+    agentId?: string;
+    title?: string;
+    status?: 'lead' | 'active' | 'due-diligence' | 'offer' | 'won' | 'lost';
+    suburb?: string;
+    budgetMin?: number;
+    budgetMax?: number;
+    bedrooms?: number;
+    bathrooms?: number;
+    brief?: string;
+    geoSegment?: 'East' | 'West' | 'North' | 'Central';
+    aiConsentGiven?: boolean;
+    agreementStatus?: 'pending' | 'sent' | 'signed' | 'none';
+    invoiceStatus?: 'none' | 'deposit-sent' | 'deposit-paid' | 'final-sent' | 'final-paid';
+  };
+  if (!body || !body.title) {
+    res.status(400).json({ error: 'title is required' });
     return;
   }
   const now = new Date().toISOString();
@@ -55,18 +53,34 @@ router.post('/', async (req, res) => {
 });
 
 router.put('/:id', async (req, res) => {
-  const body = req.body as Partial<Deal>;
+  const body = req.body as {
+    clientId?: string;
+    agentId?: string;
+    title?: string;
+    status?: 'lead' | 'active' | 'due-diligence' | 'offer' | 'won' | 'lost';
+    suburb?: string;
+    budgetMin?: number;
+    budgetMax?: number;
+    bedrooms?: number;
+    bathrooms?: number;
+    brief?: string;
+    geoSegment?: 'East' | 'West' | 'North' | 'Central';
+    aiConsentGiven?: boolean;
+    agreementStatus?: 'pending' | 'sent' | 'signed' | 'none';
+    invoiceStatus?: 'none' | 'deposit-sent' | 'deposit-paid' | 'final-sent' | 'final-paid';
+  };
   const now = new Date().toISOString();
-  const update: Record<string, unknown> = {
+  const updateData: Record<string, unknown> = {
     ...body,
     updatedAt: now,
   };
-  delete (update as { id?: unknown }).id;
-  const found = await db.collection('deals').updateOne(req.params.id, update);
+  delete (updateData as { id?: unknown }).id;
+  const found = await db.collection('deals').findById(req.params.id);
   if (!found) {
     res.status(404).json({ error: 'Not found' });
     return;
   }
+  await db.collection('deals').updateOne(req.params.id, updateData);
   const updated = await db.collection('deals').findById(req.params.id);
   if (!updated) {
     res.status(404).json({ error: 'Not found' });
@@ -76,11 +90,12 @@ router.put('/:id', async (req, res) => {
 });
 
 router.delete('/:id', async (req, res) => {
-  const deleted = await db.collection('deals').deleteOne(req.params.id);
-  if (!deleted) {
+  const found = await db.collection('deals').findById(req.params.id);
+  if (!found) {
     res.status(404).json({ error: 'Not found' });
     return;
   }
+  await db.collection('deals').deleteOne(req.params.id);
   res.json({ success: true });
 });
 

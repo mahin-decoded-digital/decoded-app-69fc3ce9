@@ -1,5 +1,4 @@
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 
 interface EmptyStateProps {
   icon?: React.ReactNode;
@@ -12,18 +11,27 @@ interface EmptyStateProps {
 
 export function EmptyState({ icon, heading, description, ctaLabel, onCta, className }: EmptyStateProps) {
   return (
-    <div className={cn('flex flex-col items-center justify-center py-16 px-6 text-center', className)}>
+    <div
+      className={cn('flex flex-col items-center justify-center py-16 px-6 text-center rounded-2xl', className)}
+      style={{ background: 'var(--blue-frost)', border: '1px dashed hsl(214 60% 84%)' }}
+    >
       {icon && (
-        <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-xl bg-[var(--surface-tinted)] text-primary">
-          {icon}
+        <div
+          className="h-14 w-14 rounded-2xl flex items-center justify-center mb-4"
+          style={{ background: 'var(--gradient-cta)', boxShadow: 'var(--shadow-cta)' }}
+        >
+          <span style={{ color: 'hsl(0 0% 100%)', opacity: 0.95 }}>{icon}</span>
         </div>
       )}
-      <h3 className="text-base font-semibold text-foreground mb-2">{heading}</h3>
-      <p className="text-sm text-muted-foreground max-w-sm leading-relaxed mb-6">{description}</p>
+      <h3 className="text-base font-bold text-foreground mb-2">{heading}</h3>
+      <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">{description}</p>
       {ctaLabel && onCta && (
-        <Button onClick={onCta} size="sm">
+        <button
+          onClick={onCta}
+          className="btn-gradient mt-6 rounded-xl px-6 py-2.5 text-sm font-semibold"
+        >
           {ctaLabel}
-        </Button>
+        </button>
       )}
     </div>
   );

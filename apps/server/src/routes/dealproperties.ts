@@ -9,31 +9,22 @@ function project<T extends WithMongoId>(doc: T): Omit<T, '_id'> & { id: string }
 
 const router = Router();
 
-interface DealpropertyBody {
-  dealId?: string;
-  propertyId?: string;
-  shortlistStatus?: 'considering' | 'shortlisted' | 'rejected' | 'offer-made';
-  clientVisible?: boolean;
-  internalNotes?: string;
-  clientNotes?: string;
-  ddRecordId?: string | null;
-}
-
-router.get('/', async (req, res) => {
-  const items = await db.collection('dealproperties').find();
-  res.json(items.map(project));
-});
-
 router.post('/', async (req, res) => {
-  const body = req.body as DealpropertyBody;
-  if (!body || !body.dealId) {
-    res.status(400).json({ error: 'dealId is required' });
+  const body = req.body as {
+    dealId?: string;
+    propertyId?: string;
+    shortlistStatus?: 'considering' | 'shortlisted' | 'rejected' | 'offer-made';
+    clientVisible?: boolean;
+    internalNotes?: string;
+    clientNotes?: string;
+    ddRecordId?: string | null;
+  };
+
+  if (!body || !body.dealId || !body.propertyId) {
+    res.status(400).json({ error: 'dealId and propertyId are required' });
     return;
   }
-  if (!body.propertyId) {
-    res.status(400).json({ error: 'propertyId is required' });
-    return;
-  }
+
   const now = new Date().toISOString();
   const doc: Record<string, unknown> = {
     ...body,
@@ -41,6 +32,7 @@ router.post('/', async (req, res) => {
     updatedAt: now,
   };
   delete (doc as { id?: unknown }).id;
+
   const id = await db.collection('dealproperties').insertOne(doc);
   const created = await db.collection('dealproperties').findById(id);
   if (!created) {
@@ -51,14 +43,29 @@ router.post('/', async (req, res) => {
 });
 
 router.put('/:id', async (req, res) => {
-  const body = req.body as DealpropertyBody;
-  const updatedAt = new Date().toISOString();
-  const found = await db.collection('dealproperties').findById(req.params.id);
+  const body = req.body as {
+    dealId?: string;
+    propertyId?: string;
+    shortlistStatus?: 'considering' | 'shortlisted' | 'rejected' | 'offer-made';
+    clientVisible?: boolean;
+    internalNotes?: string;
+    clientNotes?: string;
+    ddRecordId?: string | null;
+  };
+
+  const now = new Date().toISOString();
+  const updateData: Record<string, unknown> = {
+    ...body,
+    updatedAt: now,
+  };
+  delete (updateData as { id?: unknown }).id;
+
+  const found = await db.collection('dealproperties').updateOne(req.params.id, updateData);
   if (!found) {
     res.status(404).json({ error: 'Not found' });
     return;
   }
-  await db.collection('dealproperties').updateOne(req.params.id, { ...body, updatedAt });
+
   const updated = await db.collection('dealproperties').findById(req.params.id);
   if (!updated) {
     res.status(404).json({ error: 'Not found' });
