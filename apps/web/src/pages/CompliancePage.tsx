@@ -36,10 +36,10 @@ const STAGE_COLORS: Record<string, { bg: string; text: string }> = {
 
 export default function CompliancePage() {
   // === auto fetch-on-mount (backend planner) ===
-  const fetchCompliancechecklists = useComplianceStore((s) => s.fetchCompliancechecklists);
+  const fetchDeals = useDealStore((s) => s.fetchDeals);
   useEffect(() => {
-    fetchCompliancechecklists();
-  }, [fetchCompliancechecklists]);
+    fetchDeals();
+  }, [fetchDeals]);
   // === end auto fetch-on-mount ===
 
   const fetchDeals = useDealStore((s) => s.fetchDeals);

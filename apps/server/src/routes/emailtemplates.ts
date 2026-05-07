@@ -9,19 +9,23 @@ function project<T extends WithMongoId>(doc: T): Omit<T, '_id'> & { id: string }
 
 const router = Router();
 
+interface Emailtemplate {
+  name: string;
+  category?: 'welcome' | 'requirement-blast' | 'dd-request' | 'status-update' | 'post-settlement' | 'referrer-thanks' | 'other';
+  subject: string;
+  body?: string;
+  isActive?: boolean;
+}
+
+// list
 router.get('/', async (req, res) => {
   const items = await db.collection('emailtemplates').find();
   res.json(items.map(project));
 });
 
+// create
 router.post('/', async (req, res) => {
-  const body = req.body as {
-    name?: string;
-    category?: 'welcome' | 'requirement-blast' | 'dd-request' | 'status-update' | 'post-settlement' | 'referrer-thanks' | 'other';
-    subject?: string;
-    body?: string;
-    isActive?: boolean;
-  };
+  const body = req.body as Partial<Emailtemplate>;
   if (!body || !body.name) {
     res.status(400).json({ error: 'name is required' });
     return;
@@ -42,26 +46,15 @@ router.post('/', async (req, res) => {
   res.status(201).json(project(created));
 });
 
+// update
 router.put('/:id', async (req, res) => {
-  const body = req.body as {
-    name?: string;
-    category?: 'welcome' | 'requirement-blast' | 'dd-request' | 'status-update' | 'post-settlement' | 'referrer-thanks' | 'other';
-    subject?: string;
-    body?: string;
-    isActive?: boolean;
-  };
+  const body = req.body as Partial<Emailtemplate>;
   const now = new Date().toISOString();
-  const updated_fields: Record<string, unknown> = {
-    ...body,
-    updatedAt: now,
-  };
-  delete (updated_fields as { id?: unknown }).id;
-  const found = await db.collection('emailtemplates').findById(req.params.id);
-  if (!found) {
+  const updated_check = await db.collection('emailtemplates').updateOne(req.params.id, { ...body, updatedAt: now });
+  if (!updated_check) {
     res.status(404).json({ error: 'Not found' });
     return;
   }
-  await db.collection('emailtemplates').updateOne(req.params.id, updated_fields);
   const updated = await db.collection('emailtemplates').findById(req.params.id);
   if (!updated) {
     res.status(404).json({ error: 'Not found' });
@@ -70,13 +63,13 @@ router.put('/:id', async (req, res) => {
   res.json(project(updated));
 });
 
+// delete
 router.delete('/:id', async (req, res) => {
-  const found = await db.collection('emailtemplates').findById(req.params.id);
-  if (!found) {
+  const deleted = await db.collection('emailtemplates').deleteOne(req.params.id);
+  if (!deleted) {
     res.status(404).json({ error: 'Not found' });
     return;
   }
-  await db.collection('emailtemplates').deleteOne(req.params.id);
   res.json({ success: true });
 });
 

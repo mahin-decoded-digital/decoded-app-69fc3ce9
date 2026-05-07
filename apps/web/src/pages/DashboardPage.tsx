@@ -14,10 +14,10 @@ import { NewDealDialog } from '@/components/NewDealDialog';
 
 export default function DashboardPage() {
   // === auto fetch-on-mount (backend planner) ===
-  const fetchDuediligencerecords = useDDStore((s) => s.fetchDuediligencerecords);
+  const fetchOffmarketproperties = usePropertyStore((s) => s.fetchOffmarketproperties);
   useEffect(() => {
-    fetchDuediligencerecords();
-  }, [fetchDuediligencerecords]);
+    fetchOffmarketproperties();
+  }, [fetchOffmarketproperties]);
   // === end auto fetch-on-mount ===
 
   const fetchOffmarketproperties = usePropertyStore((s) => s.fetchOffmarketproperties);

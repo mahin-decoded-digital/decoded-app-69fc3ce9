@@ -26,14 +26,12 @@ router.post('/', async (req, res) => {
     lastContactedAt?: Date | null;
     notes?: string;
   };
+
   if (!body || !body.name) {
     res.status(400).json({ error: 'name is required' });
     return;
   }
-  if (!body.email) {
-    res.status(400).json({ error: 'email is required' });
-    return;
-  }
+
   const now = new Date().toISOString();
   const doc: Record<string, unknown> = {
     ...body,
@@ -41,6 +39,7 @@ router.post('/', async (req, res) => {
     updatedAt: now,
   };
   delete (doc as { id?: unknown }).id;
+
   const id = await db.collection('agents').insertOne(doc);
   const created = await db.collection('agents').findById(id);
   if (!created) {
@@ -62,14 +61,10 @@ router.put('/:id', async (req, res) => {
     lastContactedAt?: Date | null;
     notes?: string;
   };
-  const now = new Date().toISOString();
-  const updateData: Record<string, unknown> = {
-    ...body,
-    updatedAt: now,
-  };
-  delete (updateData as { id?: unknown }).id;
-  const found = await db.collection('agents').updateOne(req.params.id, updateData);
-  if (!found) {
+
+  const updatedAt = new Date().toISOString();
+  const success = await db.collection('agents').updateOne(req.params.id, { ...body, updatedAt });
+  if (!success) {
     res.status(404).json({ error: 'Not found' });
     return;
   }
@@ -82,8 +77,8 @@ router.put('/:id', async (req, res) => {
 });
 
 router.delete('/:id', async (req, res) => {
-  const deleted = await db.collection('agents').deleteOne(req.params.id);
-  if (!deleted) {
+  const success = await db.collection('agents').deleteOne(req.params.id);
+  if (!success) {
     res.status(404).json({ error: 'Not found' });
     return;
   }
