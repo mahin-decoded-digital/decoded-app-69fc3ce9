@@ -1,0 +1,36 @@
+:root {
+  --sidebar-width: 240px;
+  --topbar-height: 60px;
+  --ink-deep: hsl(207, 55%, 22%);
+  --surface-subtle: hsl(207, 20%, 97%);
+  --surface-tinted: hsl(207, 30%, 94%);
+  --gold-muted: hsl(39, 70%, 52%);
+  --gold-subtle: hsl(39, 90%, 93%);
+  --status-lead: hsl(207, 50%, 60%);
+  --status-active: hsl(150, 55%, 42%);
+  --status-dd: hsl(39, 80%, 52%);
+  --status-offer: hsl(280, 50%, 55%);
+  --status-won: hsl(142, 60%, 40%);
+  --status-lost: hsl(0, 55%, 52%);
+  --shadow-card: 0 1px 3px 0 hsl(207 30% 50% / 0.08), 0 1px 2px -1px hsl(207 30% 50% / 0.06);
+  --shadow-elevated: 0 4px 12px 0 hsl(207 30% 40% / 0.12), 0 2px 4px -1px hsl(207 30% 40% / 0.08);
+  --radius-card: 8px;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-display: 'DM Sans', 'Inter', system-ui, sans-serif;
+}
+
+.dark {
+  --ink-deep: hsl(207, 55%, 75%);
+  --surface-subtle: hsl(207, 13%, 9%);
+  --surface-tinted: hsl(207, 14%, 15%);
+  --gold-muted: hsl(39, 65%, 58%);
+  --gold-subtle: hsl(39, 30%, 20%);
+  --status-lead: hsl(207, 55%, 65%);
+  --status-active: hsl(150, 50%, 52%);
+  --status-dd: hsl(39, 75%, 58%);
+  --status-offer: hsl(280, 55%, 65%);
+  --status-won: hsl(142, 55%, 48%);
+  --status-lost: hsl(0, 55%, 58%);
+  --shadow-card: 0 1px 3px 0 hsl(207 30% 5% / 0.35), 0 1px 2px -1px hsl(207 30% 5% / 0.25);
+  --shadow-elevated: 0 4px 16px 0 hsl(207 30% 2% / 0.5), 0 2px 6px -1px hsl(207 30% 5% / 0.4);
+}

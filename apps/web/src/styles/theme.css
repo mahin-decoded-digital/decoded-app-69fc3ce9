@@ -1,0 +1,57 @@
+/**
+ * theme.css — pre-written by the design pipeline (server-controlled).
+ *
+ * Tier: logo-extracted
+ * Mode: light (default)
+ * Primary source: logo
+ * Accent source:  logo
+ * Tier origin:    logo-extracted
+ *
+ * This file overrides EVERY semantic shadcn variable so the brand hue
+ * carries through cards, borders, muted surfaces, focus rings, and
+ * sidebars — not just the primary CTA. Loaded AFTER index.css so the
+ * cascade picks these values.
+ *
+ * Format: shadcn space-separated HSL ("H S% L%"), read via
+ * `hsl(var(--primary))` in Tailwind utilities.
+ */
+
+:root {
+  --background: 207.1 18.4% 99%;
+  --foreground: 207.1 25% 8%;
+  --card: 0 0% 100%;
+  --card-foreground: 207.1 25% 8%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 207.1 25% 8%;
+  --primary: 207.1 65.7% 46%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 39.1 40.5% 95%;
+  --secondary-foreground: 39.1 30% 22%;
+  --muted: 207.1 16.4% 96%;
+  --muted-foreground: 207.1 12% 42%;
+  --accent: 39.1 27% 92%;
+  --accent-foreground: 39.1 35% 22%;
+  --border: 207.1 16.4% 91%;
+  --input: 207.1 16.4% 91%;
+  --ring: 207.1 65.7% 46%;
+}
+
+.dark {
+  --background: 207.1 13.1% 9%;
+  --foreground: 207.1 18% 96%;
+  --card: 207.1 14.5% 12%;
+  --card-foreground: 207.1 18% 96%;
+  --popover: 207.1 14.5% 12%;
+  --popover-foreground: 207.1 18% 96%;
+  --primary: 207.1 65.7% 52%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 39.1 27% 16%;
+  --secondary-foreground: 39.1 30% 92%;
+  --muted: 207.1 13.1% 18%;
+  --muted-foreground: 207.1 16% 65%;
+  --accent: 39.1 22.5% 18%;
+  --accent-foreground: 39.1 30% 92%;
+  --border: 207.1 14.5% 22%;
+  --input: 207.1 14.5% 22%;
+  --ring: 207.1 65.7% 52%;
+}
